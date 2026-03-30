@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from .resources import Palette
+from .resources import Palette, combo_arrow_path
 
 _P = Palette
+_ARROW = combo_arrow_path()
 
 STYLESHEET = f"""
 /* ── Global ─────────────────────────────────────────── */
@@ -195,15 +196,16 @@ QComboBox:focus {{
     border: 1px solid {_P.BLUE.name()};
 }}
 QComboBox::drop-down {{
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 20px;
     border: none;
-    padding-right: 8px;
+    background: transparent;
 }}
 QComboBox::down-arrow {{
-    image: none;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid {_P.SUBTEXT.name()};
-    margin-right: 6px;
+    image: url({_ARROW});
+    width: 10px;
+    height: 6px;
 }}
 QComboBox QAbstractItemView {{
     background-color: {_P.SURFACE.name()};

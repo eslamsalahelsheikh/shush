@@ -104,3 +104,26 @@ def status_dot(color: QColor, size: int = 12) -> QPixmap:
     p.drawEllipse(1, 1, size - 2, size - 2)
     p.end()
     return pm
+
+
+def combo_arrow_path() -> str:
+    """Create a small down-arrow PNG and return its file path.
+
+    Qt stylesheets need a real file for ``image: url(...)``.
+    The file is written once to a temp dir and reused.
+    """
+    import os
+    import tempfile
+    path = os.path.join(tempfile.gettempdir(), "shush_combo_arrow.png")
+    if not os.path.exists(path):
+        pm = QPixmap(QSize(10, 6))
+        pm.fill(Qt.transparent)
+        p = QPainter(pm)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setPen(Qt.NoPen)
+        p.setBrush(Palette.SUBTEXT)
+        from PyQt5.QtGui import QPolygonF
+        p.drawPolygon(QPolygonF([QPointF(1, 1), QPointF(9, 1), QPointF(5, 5)]))
+        p.end()
+        pm.save(path, "PNG")
+    return path
