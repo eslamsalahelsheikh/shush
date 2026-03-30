@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 class TrayIcon(QSystemTrayIcon):
     toggle_window = pyqtSignal()
+    show_log = pyqtSignal()
     toggle_pause = pyqtSignal(bool)
     quit_app = pyqtSignal()
 
@@ -31,6 +32,10 @@ class TrayIcon(QSystemTrayIcon):
         self._show_action = QAction("Show / Hide", menu)
         self._show_action.triggered.connect(self.toggle_window.emit)
         menu.addAction(self._show_action)
+
+        self._log_action = QAction("Activity Log", menu)
+        self._log_action.triggered.connect(self._open_log)
+        menu.addAction(self._log_action)
 
         self._pause_action = QAction("Pause Filtering", menu)
         self._pause_action.setCheckable(True)
@@ -48,7 +53,14 @@ class TrayIcon(QSystemTrayIcon):
 
     def _on_activated(self, reason):
         if reason == QSystemTrayIcon.Trigger:
-            self.toggle_window.emit()
+            if self._suppressed_count > 0:
+                self._open_log()
+            else:
+                self.toggle_window.emit()
+
+    def _open_log(self):
+        self.show_log.emit()
+        self.reset_suppressed()
 
     def _on_pause(self, checked: bool):
         self._paused = checked
