@@ -55,8 +55,8 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y devscripts debhelper dh-python \
-            python3-all python3-setuptools python3-pyqt5 \
+          sudo apt-get install -y build-essential devscripts debhelper \
+            dh-python python3-all python3-setuptools python3-pyqt5 \
             python3-dbus python3-gi gir1.2-glib-2.0
 
       - name: Build .deb
