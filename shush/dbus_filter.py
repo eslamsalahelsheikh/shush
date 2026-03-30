@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Set
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
@@ -34,6 +34,8 @@ class DBusFilter:
         self.dry_run = dry_run
         self.paused = False
         self._pending: Dict[int, dict] = {}
+        self._recently_allowed: Set[str] = set()
+        self._recently_closed: Set[int] = set()
         self._on_entry_callbacks: list = []
         self._on_new_app_callbacks: list = []
 
@@ -47,13 +49,14 @@ class DBusFilter:
         self._iface = dbus.Interface(proxy, "org.freedesktop.Notifications")
 
         self.bus.add_match_string(
+            "eavesdrop='true',"
             "type='method_call',"
             "interface='org.freedesktop.Notifications',"
             "member='Notify'"
         )
         self.bus.add_match_string(
-            "type='method_return',"
-            "sender='org.freedesktop.Notifications'"
+            "eavesdrop='true',"
+            "type='method_return'"
         )
         self.bus.add_message_filter(self._filter)
         log.info("D-Bus notification filter attached (dry_run=%s)", dry_run)
@@ -102,6 +105,13 @@ class DBusFilter:
                 except Exception:
                     log.exception("New-app callback error")
 
+        dedup_key = f"{app_name}\0{summary}\0{body}"
+        if dedup_key in self._recently_allowed:
+            return
+        self._recently_allowed.add(dedup_key)
+        if len(self._recently_allowed) > 200:
+            self._recently_allowed.clear()
+
         if self.paused:
             self._emit_log(LogEntry(
                 timestamp=datetime.now(), app_name=app_name,
@@ -143,6 +153,12 @@ class DBusFilter:
         self._close(notif_id, info)
 
     def _close(self, notif_id: int, info: dict) -> None:
+        if notif_id in self._recently_closed:
+            return
+        self._recently_closed.add(notif_id)
+        if len(self._recently_closed) > 200:
+            self._recently_closed.clear()
+
         log.info("SUPPRESS id=%d app=%r summary=%r", notif_id, info["app_name"], info["summary"])
         self._emit_log(LogEntry(
             timestamp=datetime.now(),
