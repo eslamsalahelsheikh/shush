@@ -64,17 +64,17 @@ class MainWindow(QMainWindow):
         self.rules_tab = RulesTab(self.rules, cfg=self.cfg,
                                   installed_apps=self._installed_apps)
         self.rules_tab.rules_changed.connect(self._on_rules_changed)
-        self._add_tab("\U0001f4cb  Rules", self.rules_tab)
+        self._add_tab("\u2261  Rules", self.rules_tab)
 
         self.log_tab = LogTab()
-        self._add_tab("\U0001f4ca  Activity Log", self.log_tab)
+        self._add_tab("\u25ce  Activity Log", self.log_tab)
 
         self.settings_tab = SettingsTab(self.cfg, self.rules)
         self.settings_tab.settings_changed.connect(self._on_settings_changed)
-        self._add_tab("\u2699\ufe0f  Settings", self.settings_tab)
+        self._add_tab("\u2699  Settings", self.settings_tab)
 
         self.about_tab = AboutTab()
-        self._add_tab("\U0001f4ac  About", self.about_tab)
+        self._add_tab("\u24d8  About", self.about_tab)
 
         self.nav.setCurrentRow(0)
 

@@ -62,11 +62,11 @@ class LogTab(QWidget):
         self.pause_btn.toggled.connect(self._toggle_pause)
         toolbar.addWidget(self.pause_btn)
 
-        export_btn = QPushButton("\U0001f4be  Export CSV")
+        export_btn = QPushButton("\u2913  Export CSV")
         export_btn.clicked.connect(self._export)
         toolbar.addWidget(export_btn)
 
-        clear_btn = QPushButton("\U0001f5d1  Clear")
+        clear_btn = QPushButton("\u2715  Clear")
         clear_btn.setObjectName("destructive")
         clear_btn.clicked.connect(self._clear)
         toolbar.addWidget(clear_btn)

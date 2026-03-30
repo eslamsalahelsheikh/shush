@@ -84,10 +84,10 @@ class RulesTab(QWidget):
         toolbar.setContentsMargins(8, 6, 8, 6)
         toolbar.setSpacing(6)
         _btn_defs = [
-            ("\u2795  Add", self._on_add, "primary"),
-            ("\u270f  Edit", self._on_edit, None),
-            ("\u2398  Duplicate", self._on_duplicate, None),
-            ("\U0001f5d1  Remove", self._on_remove, "destructive"),
+            ("+  Add", self._on_add, "primary"),
+            ("\u270e  Edit", self._on_edit, None),
+            ("\u2750  Duplicate", self._on_duplicate, None),
+            ("\u2212  Remove", self._on_remove, "destructive"),
             ("\u25b2  Up", self._on_move_up, None),
             ("\u25bc  Down", self._on_move_down, None),
         ]
