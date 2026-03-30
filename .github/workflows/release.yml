@@ -10,45 +10,35 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libdbus-1-dev libgirepository1.0-dev gir1.2-glib-2.0
+          sudo apt-get install -y python3-pyqt5 python3-dbus python3-gi \
+            gir1.2-glib-2.0 python3-pip python3-venv
 
-      - name: Install Python dependencies
+      - name: Install test dependencies
         run: |
-          pip install --upgrade pip
-          pip install .[dev] 2>/dev/null || pip install .
-          pip install pytest
+          python3 -m pip install --break-system-packages pytest
+          python3 -m pip install --break-system-packages --no-deps .
 
       - name: Run tests
-        run: python -m pytest tests/ -v
+        run: python3 -m pytest tests/ -v
 
   build-python:
     needs: test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
       - name: Install build tools
-        run: pip install build
+        run: python3 -m pip install --break-system-packages build
 
       - name: Build sdist and wheel
-        run: python -m build
+        run: python3 -m build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -58,7 +48,7 @@ jobs:
 
   build-deb:
     needs: test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -83,7 +73,7 @@ jobs:
 
   publish:
     needs: [build-python, build-deb]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
