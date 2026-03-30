@@ -136,14 +136,18 @@ def run(argv=None) -> int:
 
     tray = TrayIcon()
 
-    def toggle_window():
+    def on_tray_click():
         if window.isVisible():
             window.hide()
+        elif tray._suppressed_count > 0:
+            window.show_log_tab()
+            tray.reset_suppressed()
         else:
             window.show()
-            tray.reset_suppressed()
+            window.raise_()
+            window.activateWindow()
 
-    tray.toggle_window.connect(toggle_window)
+    tray.toggle_window.connect(on_tray_click)
     tray.toggle_pause.connect(_make_pause_handler(dbus_filter))
     tray.quit_app.connect(qt_app.quit)
     tray.show()

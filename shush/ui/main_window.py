@@ -88,6 +88,13 @@ class MainWindow(QMainWindow):
         self.nav.addItem(item)
         self.stack.addWidget(widget)
 
+    def show_log_tab(self):
+        """Switch to the Activity Log tab and show the window."""
+        self.nav.setCurrentRow(1)
+        self.show()
+        self.raise_()
+        self.activateWindow()
+
     def _switch_tab(self, index: int):
         widget = self.stack.widget(index)
         if widget is None:
