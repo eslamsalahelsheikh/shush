@@ -6,6 +6,7 @@ import logging
 from typing import List
 
 from PyQt5.QtCore import QEasingCurve, QPropertyAnimation, Qt
+from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (
     QApplication,
     QGraphicsOpacityEffect,
@@ -15,6 +16,7 @@ from PyQt5.QtWidgets import (
     QListWidgetItem,
     QMainWindow,
     QMessageBox,
+    QShortcut,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -86,6 +88,22 @@ class MainWindow(QMainWindow):
 
         self.statusBar().showMessage("Ready")
         self._update_status()
+        self._setup_shortcuts()
+
+    def _setup_shortcuts(self):
+        for i in range(min(self.stack.count(), 9)):
+            sc = QShortcut(QKeySequence(f"Ctrl+{i + 1}"), self)
+            sc.activated.connect(lambda idx=i: self.nav.setCurrentRow(idx))
+
+        QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(
+            lambda: (self.nav.setCurrentRow(0), self.rules_tab._on_add())
+        )
+        QShortcut(QKeySequence("Ctrl+F"), self).activated.connect(
+            lambda: (self.nav.setCurrentRow(1), self.log_tab.focus_search())
+        )
+        QShortcut(QKeySequence("Ctrl+Q"), self).activated.connect(
+            QApplication.instance().quit
+        )
 
     def _add_tab(self, name: str, widget: QWidget):
         item = QListWidgetItem(name)
