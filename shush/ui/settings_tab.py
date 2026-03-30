@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from .. import config
 from ..models import DefaultAction, FocusPreset, GlobalConfig, Rule
 
 
@@ -86,6 +87,20 @@ class SettingsTab(QWidget):
         hint2.setProperty("subtext", True)
         sg_layout.addWidget(hint2)
         layout.addWidget(sound_group)
+
+        # --- Autostart ---
+        auto_group = QGroupBox("Startup")
+        auto_layout = QVBoxLayout(auto_group)
+        self.autostart_cb = ToggleSwitch("Launch Shush automatically on login")
+        auto_layout.addWidget(self.autostart_cb)
+        hint_auto = QLabel(
+            "Installs a .desktop file in ~/.config/autostart/ so Shush "
+            "starts minimized to the system tray when you log in."
+        )
+        hint_auto.setWordWrap(True)
+        hint_auto.setProperty("subtext", True)
+        auto_layout.addWidget(hint_auto)
+        layout.addWidget(auto_group)
 
         # --- Matching ---
         match_group = QGroupBox("Matching")
@@ -154,6 +169,7 @@ class SettingsTab(QWidget):
         else:
             self.allow_radio.setChecked(True)
         self.sound_cb.setChecked(self.cfg.sound_control)
+        self.autostart_cb.setChecked(config.is_autostart_installed())
         self.case_cb.setChecked(self.cfg.case_sensitive)
         self.log_file_cb.setChecked(self.cfg.log_to_file)
         self.log_path_edit.setText(self.cfg.log_file)
@@ -175,6 +191,13 @@ class SettingsTab(QWidget):
             else DefaultAction.ALLOW_ALL
         )
         self.cfg.sound_control = self.sound_cb.isChecked()
+        want_autostart = self.autostart_cb.isChecked()
+        if want_autostart != config.is_autostart_installed():
+            if want_autostart:
+                config.install_autostart()
+            else:
+                config.remove_autostart()
+        self.cfg.autostart = want_autostart
         self.cfg.case_sensitive = self.case_cb.isChecked()
         self.cfg.log_to_file = self.log_file_cb.isChecked()
         self.cfg.log_file = self.log_path_edit.text().strip()

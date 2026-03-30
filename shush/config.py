@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
 import uuid
 from pathlib import Path
 from typing import List, Tuple
@@ -17,6 +18,10 @@ _XDG_CONFIG = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
 CONFIG_DIR = Path(_XDG_CONFIG) / "shush"
 RULES_FILE = CONFIG_DIR / "rules.json"
 LOG_FILE = CONFIG_DIR / "activity_log.json"
+
+_AUTOSTART_DIR = Path(os.path.expanduser("~/.config/autostart"))
+_AUTOSTART_FILE = _AUTOSTART_DIR / "shush.desktop"
+_SOURCE_DESKTOP = Path(__file__).resolve().parent.parent / "data" / "shush.desktop"
 
 _MAX_PERSISTED_ENTRIES = 2000
 
@@ -136,3 +141,48 @@ def save(cfg: GlobalConfig, rules: List[Rule]) -> None:
         log.debug("Config saved to %s", RULES_FILE)
     except OSError as exc:
         log.warning("Failed to save config: %s", exc)
+
+
+def install_autostart() -> bool:
+    """Copy shush.desktop to ~/.config/autostart/. Returns True on success."""
+    try:
+        _AUTOSTART_DIR.mkdir(parents=True, exist_ok=True)
+        if _SOURCE_DESKTOP.exists():
+            shutil.copy2(_SOURCE_DESKTOP, _AUTOSTART_FILE)
+        else:
+            _AUTOSTART_FILE.write_text(
+                "[Desktop Entry]\n"
+                "Type=Application\n"
+                "Name=Shush\n"
+                "GenericName=Notification Filter\n"
+                "Comment=Suppress desktop notifications except those matching your rules\n"
+                "Exec=shush --minimized\n"
+                "Icon=shush\n"
+                "Terminal=false\n"
+                "Categories=Utility;GTK;\n"
+                "Keywords=notifications;filter;focus;dnd;\n"
+                "StartupNotify=false\n"
+                "X-GNOME-Autostart-enabled=true\n"
+            )
+        log.info("Autostart installed: %s", _AUTOSTART_FILE)
+        return True
+    except OSError as exc:
+        log.warning("Failed to install autostart: %s", exc)
+        return False
+
+
+def remove_autostart() -> bool:
+    """Remove shush.desktop from ~/.config/autostart/. Returns True on success."""
+    try:
+        if _AUTOSTART_FILE.exists():
+            _AUTOSTART_FILE.unlink()
+            log.info("Autostart removed: %s", _AUTOSTART_FILE)
+        return True
+    except OSError as exc:
+        log.warning("Failed to remove autostart: %s", exc)
+        return False
+
+
+def is_autostart_installed() -> bool:
+    """Check whether the autostart desktop file exists."""
+    return _AUTOSTART_FILE.exists()
