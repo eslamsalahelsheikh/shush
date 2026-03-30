@@ -129,7 +129,10 @@ def save(cfg: GlobalConfig, rules: List[Rule]) -> None:
         "rules": [r.to_dict() for r in rules],
     }
     tmp = RULES_FILE.with_suffix(".tmp")
-    with open(tmp, "w") as f:
-        json.dump(data, f, indent=2)
-    tmp.replace(RULES_FILE)
-    log.debug("Config saved to %s", RULES_FILE)
+    try:
+        with open(tmp, "w") as f:
+            json.dump(data, f, indent=2)
+        tmp.replace(RULES_FILE)
+        log.debug("Config saved to %s", RULES_FILE)
+    except OSError as exc:
+        log.warning("Failed to save config: %s", exc)
