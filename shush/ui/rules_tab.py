@@ -4,17 +4,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List
 
+import json
+import logging
+import uuid
+
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (
     QAbstractItemView,
+    QFileDialog,
     QHBoxLayout,
     QHeaderView,
+    QMessageBox,
     QPushButton,
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
     QWidget,
 )
+
+_log = logging.getLogger(__name__)
 
 from ..models import Action, GlobalConfig, Rule
 from .resources import Palette
@@ -98,6 +106,14 @@ class RulesTab(QWidget):
                 btn.setObjectName(obj_name)
             toolbar.addWidget(btn)
         toolbar.addStretch()
+
+        import_btn = QPushButton("\u2191  Import")
+        import_btn.clicked.connect(self._on_import)
+        toolbar.addWidget(import_btn)
+        export_btn = QPushButton("\u2193  Export")
+        export_btn.clicked.connect(self._on_export)
+        toolbar.addWidget(export_btn)
+
         layout.addLayout(toolbar)
 
     def _populate(self):
@@ -220,6 +236,48 @@ class RulesTab(QWidget):
         self.rules.clear()
         self.rules.extend(new_order)
         self.rules_changed.emit()
+
+    def _on_export(self):
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export Rules", "shush_rules.json", "JSON (*.json)",
+        )
+        if not path:
+            return
+        data = [r.to_dict() for r in self.rules]
+        try:
+            with open(path, "w") as f:
+                json.dump(data, f, indent=2)
+        except OSError as exc:
+            QMessageBox.warning(self, "Export Failed", str(exc))
+
+    def _on_import(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Import Rules", "", "JSON (*.json);;All Files (*)",
+        )
+        if not path:
+            return
+        try:
+            with open(path) as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            QMessageBox.warning(self, "Import Failed", str(exc))
+            return
+        if not isinstance(data, list):
+            QMessageBox.warning(self, "Import Failed", "Expected a JSON array of rules.")
+            return
+        count = 0
+        for item in data:
+            try:
+                rule = Rule.from_dict(item)
+                rule.id = uuid.uuid4().hex[:12]
+                self.rules.append(rule)
+                count += 1
+            except Exception as exc:
+                _log.warning("Skipped invalid rule during import: %s", exc)
+        if count:
+            self._populate()
+            self.rules_changed.emit()
+        QMessageBox.information(self, "Import Complete", f"Imported {count} rule(s).")
 
     def sync_enabled_states(self):
         """Push checkbox states back into rule objects."""
