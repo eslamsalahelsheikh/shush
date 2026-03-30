@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import List
 
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QButtonGroup,
     QCheckBox,
@@ -19,6 +20,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QPushButton,
     QRadioButton,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -37,75 +39,99 @@ class SettingsTab(QWidget):
         self._load()
 
     def _build_ui(self):
-        layout = QVBoxLayout(self)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        inner = QWidget()
+        layout = QVBoxLayout(inner)
         layout.setContentsMargins(12, 12, 12, 8)
         layout.setSpacing(10)
 
         # --- Default action ---
-        action_group = QGroupBox("Default Action (when no rule matches)")
+        action_group = QGroupBox("Default Action")
         ag_layout = QVBoxLayout(action_group)
-        self.suppress_radio = QRadioButton("Suppress all notifications (whitelist mode)")
-        self.allow_radio = QRadioButton("Allow all notifications (blacklist mode)")
+        self.suppress_radio = QRadioButton("Suppress all (whitelist mode)")
+        self.allow_radio = QRadioButton("Allow all (blacklist mode)")
         self.action_btn_group = QButtonGroup(self)
         self.action_btn_group.addButton(self.suppress_radio, 0)
         self.action_btn_group.addButton(self.allow_radio, 1)
         ag_layout.addWidget(self.suppress_radio)
         ag_layout.addWidget(self.allow_radio)
-        ag_layout.addWidget(QLabel(
-            '<small><i>Whitelist: everything is silenced except rules marked "Allow".<br>'
-            'Blacklist: everything shows except rules marked "Block".</i></small>'
-        ))
+        hint = QLabel(
+            'Whitelist: everything is silenced except rules marked "Allow". '
+            'Blacklist: everything shows except rules marked "Block".'
+        )
+        hint.setWordWrap(True)
+        hint.setProperty("subtext", True)
+        ag_layout.addWidget(hint)
         layout.addWidget(action_group)
 
         # --- Sound control ---
         sound_group = QGroupBox("Sound Control")
         sg_layout = QVBoxLayout(sound_group)
-        self.sound_cb = QCheckBox("Suppress notification sounds for blocked notifications")
+        self.sound_cb = QCheckBox("Suppress sounds for blocked notifications")
         sg_layout.addWidget(self.sound_cb)
-        sg_layout.addWidget(QLabel(
-            '<small><i>When enabled, Shush mutes GNOME notification sounds and only '
-            'plays them for allowed notifications. Requires gsettings and '
-            'canberra-gtk-play. Original settings are restored on exit.</i></small>'
-        ))
+        hint2 = QLabel(
+            "When enabled, Shush mutes GNOME notification sounds and only "
+            "plays them for allowed notifications. Original settings are "
+            "restored on exit."
+        )
+        hint2.setWordWrap(True)
+        hint2.setProperty("subtext", True)
+        sg_layout.addWidget(hint2)
         layout.addWidget(sound_group)
 
         # --- Matching ---
         match_group = QGroupBox("Matching")
-        mg_layout = QFormLayout(match_group)
+        mg_layout = QVBoxLayout(match_group)
         self.case_cb = QCheckBox("Case-sensitive keyword matching")
-        mg_layout.addRow(self.case_cb)
+        mg_layout.addWidget(self.case_cb)
         layout.addWidget(match_group)
 
         # --- Logging ---
         log_group = QGroupBox("Activity Log File")
-        lg_layout = QFormLayout(log_group)
+        lg_layout = QVBoxLayout(log_group)
         self.log_file_cb = QCheckBox("Write suppressed notifications to file")
-        lg_layout.addRow(self.log_file_cb)
+        lg_layout.addWidget(self.log_file_cb)
+        path_row = QHBoxLayout()
+        path_label = QLabel("Path:")
+        path_row.addWidget(path_label)
         self.log_path_edit = QLineEdit()
         self.log_path_edit.setPlaceholderText("~/.config/shush/activity.log")
-        lg_layout.addRow("Path:", self.log_path_edit)
+        path_row.addWidget(self.log_path_edit)
+        lg_layout.addLayout(path_row)
         layout.addWidget(log_group)
 
         # --- Focus presets ---
         preset_group = QGroupBox("Focus-Mode Presets")
         pg_layout = QVBoxLayout(preset_group)
-        pg_layout.addWidget(QLabel(
-            '<small>Presets let you activate only a subset of rules with one click '
-            '(e.g., "Meeting" enables Boss + Calendar only).</small>'
-        ))
+        hint3 = QLabel(
+            'Presets let you activate only a subset of rules with one click '
+            '(e.g., "Meeting" enables Boss + Calendar only).'
+        )
+        hint3.setWordWrap(True)
+        hint3.setProperty("subtext", True)
+        pg_layout.addWidget(hint3)
 
         self.preset_combo = QComboBox()
-        self.preset_combo.addItem("(none — all enabled rules active)")
+        self.preset_combo.addItem("(none \u2014 all enabled rules active)")
         pg_layout.addWidget(self.preset_combo)
 
         preset_btns = QHBoxLayout()
-        self.new_preset_btn = QPushButton("New Preset")
+        self.new_preset_btn = QPushButton("New")
         self.new_preset_btn.clicked.connect(self._new_preset)
         preset_btns.addWidget(self.new_preset_btn)
-        self.edit_preset_btn = QPushButton("Edit Preset")
+        self.edit_preset_btn = QPushButton("Edit")
         self.edit_preset_btn.clicked.connect(self._edit_preset)
         preset_btns.addWidget(self.edit_preset_btn)
-        self.del_preset_btn = QPushButton("Delete Preset")
+        self.del_preset_btn = QPushButton("Delete")
+        self.del_preset_btn.setObjectName("destructive")
         self.del_preset_btn.clicked.connect(self._del_preset)
         preset_btns.addWidget(self.del_preset_btn)
         preset_btns.addStretch()
@@ -118,6 +144,9 @@ class SettingsTab(QWidget):
         apply_btn.setObjectName("primary")
         apply_btn.clicked.connect(self._apply)
         layout.addWidget(apply_btn)
+
+        scroll.setWidget(inner)
+        outer.addWidget(scroll)
 
     def _load(self):
         if self.cfg.default_action == DefaultAction.SUPPRESS_ALL:
