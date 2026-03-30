@@ -126,11 +126,24 @@ def run(argv=None) -> int:
             save(cfg, rules)
             log.debug("New app recorded: %s", app_name)
 
-    dbus_filter.connect_log(window.add_log_entry)
+    def on_log_entry(entry):
+        window.add_log_entry(entry)
+        if entry.suppressed:
+            tray.increment_suppressed()
+
+    dbus_filter.connect_log(on_log_entry)
     dbus_filter.connect_new_app(on_new_app)
 
     tray = TrayIcon()
-    tray.toggle_window.connect(lambda: window.hide() if window.isVisible() else window.show())
+
+    def toggle_window():
+        if window.isVisible():
+            window.hide()
+        else:
+            window.show()
+            tray.reset_suppressed()
+
+    tray.toggle_window.connect(toggle_window)
     tray.toggle_pause.connect(_make_pause_handler(dbus_filter))
     tray.quit_app.connect(qt_app.quit)
     tray.show()
