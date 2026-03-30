@@ -143,3 +143,24 @@ class LogEntry:
     @property
     def status_text(self) -> str:
         return "Suppressed" if self.suppressed else "Allowed"
+
+    def to_dict(self) -> dict:
+        return {
+            "timestamp": self.timestamp.isoformat(),
+            "app_name": self.app_name,
+            "summary": self.summary,
+            "body": self.body,
+            "suppressed": self.suppressed,
+            "matched_rule": self.matched_rule,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "LogEntry":
+        return cls(
+            timestamp=datetime.fromisoformat(d["timestamp"]),
+            app_name=d.get("app_name", ""),
+            summary=d.get("summary", ""),
+            body=d.get("body", ""),
+            suppressed=d.get("suppressed", False),
+            matched_rule=d.get("matched_rule"),
+        )

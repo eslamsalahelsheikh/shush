@@ -9,13 +9,16 @@ import uuid
 from pathlib import Path
 from typing import List, Tuple
 
-from .models import GlobalConfig, Rule
+from .models import GlobalConfig, LogEntry, Rule
 
 log = logging.getLogger(__name__)
 
 _XDG_CONFIG = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
 CONFIG_DIR = Path(_XDG_CONFIG) / "shush"
 RULES_FILE = CONFIG_DIR / "rules.json"
+LOG_FILE = CONFIG_DIR / "activity_log.json"
+
+_MAX_PERSISTED_ENTRIES = 500
 
 DEFAULT_RULES: List[dict] = [
     {
@@ -90,6 +93,32 @@ def load() -> Tuple[GlobalConfig, List[Rule]]:
         save(cfg, rules)
 
     return cfg, rules
+
+
+def load_log() -> List[LogEntry]:
+    """Load persisted activity log entries from disk."""
+    if not LOG_FILE.exists():
+        return []
+    try:
+        with open(LOG_FILE) as f:
+            data = json.load(f)
+        return [LogEntry.from_dict(e) for e in data[-_MAX_PERSISTED_ENTRIES:]]
+    except (json.JSONDecodeError, OSError, KeyError) as exc:
+        log.warning("Failed to load activity log: %s", exc)
+        return []
+
+
+def save_log(entries: List[LogEntry]) -> None:
+    """Persist recent activity log entries to disk."""
+    ensure_config_dir()
+    data = [e.to_dict() for e in entries[-_MAX_PERSISTED_ENTRIES:]]
+    tmp = LOG_FILE.with_suffix(".tmp")
+    try:
+        with open(tmp, "w") as f:
+            json.dump(data, f)
+        tmp.replace(LOG_FILE)
+    except OSError as exc:
+        log.warning("Failed to save activity log: %s", exc)
 
 
 def save(cfg: GlobalConfig, rules: List[Rule]) -> None:

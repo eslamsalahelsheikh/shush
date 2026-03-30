@@ -6,7 +6,7 @@ import csv
 import io
 from typing import List
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QAbstractItemView,
@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from .. import config
 from ..models import LogEntry
 from .resources import Palette, status_dot
 
@@ -29,9 +30,20 @@ _MAX_LOG_ROWS = 2000
 class LogTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._entries: List[LogEntry] = []
+        self._entries: List[LogEntry] = config.load_log()
         self._paused = False
+        self._dirty = False
         self._build_ui()
+        self._load_saved_entries()
+
+        self._save_timer = QTimer(self)
+        self._save_timer.setInterval(30_000)
+        self._save_timer.timeout.connect(self._persist)
+        self._save_timer.start()
+
+    def _load_saved_entries(self):
+        for entry in self._entries:
+            self._render_row(entry)
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -76,9 +88,13 @@ class LogTab(QWidget):
 
     def add_entry(self, entry: LogEntry):
         self._entries.append(entry)
+        self._dirty = True
         if self._paused:
             return
+        self._render_row(entry)
+        self.table.scrollToBottom()
 
+    def _render_row(self, entry: LogEntry):
         if self.table.rowCount() >= _MAX_LOG_ROWS:
             self.table.removeRow(0)
 
@@ -97,7 +113,10 @@ class LogTab(QWidget):
         self.table.setItem(row, 3, QTableWidgetItem(entry.summary))
         self.table.setItem(row, 4, QTableWidgetItem(entry.matched_rule or "—"))
 
-        self.table.scrollToBottom()
+    def _persist(self):
+        if self._dirty:
+            config.save_log(self._entries)
+            self._dirty = False
 
     def _toggle_pause(self, checked: bool):
         self._paused = checked
@@ -108,17 +127,7 @@ class LogTab(QWidget):
     def _flush_pending(self):
         self.table.setRowCount(0)
         for entry in self._entries[-_MAX_LOG_ROWS:]:
-            row = self.table.rowCount()
-            self.table.insertRow(row)
-            self.table.setItem(row, 0, QTableWidgetItem(entry.timestamp.strftime("%H:%M:%S")))
-            status_item = QTableWidgetItem(entry.status_text)
-            dot_color = Palette.RED if entry.suppressed else Palette.GREEN
-            status_item.setIcon(QIcon(status_dot(dot_color)))
-            status_item.setForeground(dot_color)
-            self.table.setItem(row, 1, status_item)
-            self.table.setItem(row, 2, QTableWidgetItem(entry.app_name))
-            self.table.setItem(row, 3, QTableWidgetItem(entry.summary))
-            self.table.setItem(row, 4, QTableWidgetItem(entry.matched_rule or "—"))
+            self._render_row(entry)
 
     def _export(self):
         path, _ = QFileDialog.getSaveFileName(self, "Export Log", "shush_log.csv", "CSV (*.csv)")
@@ -139,3 +148,5 @@ class LogTab(QWidget):
     def _clear(self):
         self._entries.clear()
         self.table.setRowCount(0)
+        self._dirty = True
+        self._persist()

@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from .. import __app_name__, __version__
-from .resources import Palette, _make_bell_pixmap
+from .resources import Palette, _make_shush_pixmap
 
 
 _GITHUB_URL = "https://github.com/eslamsalahelsheikh/shush"
@@ -30,7 +30,7 @@ class AboutTab(QWidget):
         layout.addStretch(2)
 
         icon_label = QLabel()
-        icon_label.setPixmap(_make_bell_pixmap(96, Palette.MAUVE))
+        icon_label.setPixmap(_make_shush_pixmap(96, Palette.BLUE))
         icon_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon_label)
 

@@ -143,6 +143,8 @@ def run(argv=None) -> int:
     dbus_timer.timeout.connect(lambda: _pump_glib(glib_ctx))
     dbus_timer.start(50)
 
+    qt_app.aboutToQuit.connect(lambda: window.log_tab._persist())
+
     signal.signal(signal.SIGHUP, lambda *_: _reload(cfg, rules, engine, window))
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
