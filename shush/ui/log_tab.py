@@ -150,10 +150,10 @@ class LogTab(QWidget):
         filter_row.addWidget(self.search_edit)
 
         self.status_filter = QComboBox()
-        self.status_filter.addItem("All", "all")
-        self.status_filter.addItem("Suppressed only", "suppressed")
-        self.status_filter.addItem("Allowed only", "allowed")
-        self.status_filter.setFixedWidth(150)
+        self.status_filter.addItem(QIcon(status_dot(Palette.SUBTEXT)), "All", "all")
+        self.status_filter.addItem(QIcon(status_dot(Palette.RED)), "Suppressed only", "suppressed")
+        self.status_filter.addItem(QIcon(status_dot(Palette.GREEN)), "Allowed only", "allowed")
+        self.status_filter.setFixedWidth(170)
         filter_row.addWidget(self.status_filter)
         layout.addLayout(filter_row)
 
@@ -196,7 +196,7 @@ class LogTab(QWidget):
         self.pause_btn.toggled.connect(self._toggle_pause)
         toolbar.addWidget(self.pause_btn)
 
-        export_btn = QPushButton("\u2913  Export CSV")
+        export_btn = QPushButton("\u2191  Export CSV")
         export_btn.clicked.connect(self._export)
         toolbar.addWidget(export_btn)
 

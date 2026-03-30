@@ -41,22 +41,37 @@ def _make_shush_pixmap(size: int, color: QColor, dimmed: bool = False) -> QPixma
     p.setPen(Qt.NoPen)
     p.setBrush(draw_color)
     eye_r = s * 0.04
-    p.drawEllipse(QPointF(cx - r * 0.35, cy - r * 0.2), eye_r, eye_r)
-    p.drawEllipse(QPointF(cx + r * 0.35, cy - r * 0.2), eye_r, eye_r)
+    p.drawEllipse(QPointF(cx - r * 0.35, cy - r * 0.22), eye_r, eye_r)
+    p.drawEllipse(QPointF(cx + r * 0.35, cy - r * 0.22), eye_r, eye_r)
 
-    mouth_r = s * 0.07
+    # Mouth — small "o" shape
+    mouth_cy = cy + r * 0.38
+    mouth_rx = s * 0.065
+    mouth_ry = mouth_rx * 1.1
     p.setPen(QPen(draw_color, stroke * 0.9, Qt.SolidLine, Qt.RoundCap))
     p.setBrush(Qt.NoBrush)
-    p.drawEllipse(QPointF(cx, cy + r * 0.35), mouth_r, mouth_r * 1.2)
+    p.drawEllipse(QPointF(cx, mouth_cy), mouth_rx, mouth_ry)
 
-    finger_w = s * 0.065
-    finger_h = s * 0.38
+    # Finger — vertical, placed directly over the mouth
+    finger_w = s * 0.07
+    finger_h = s * 0.32
     finger_x = cx - finger_w / 2
-    finger_y = cy + r * 0.08 - finger_h * 0.45
+    finger_center_y = mouth_cy
+    finger_top = finger_center_y - finger_h * 0.55
     finger_path = QPainterPath()
-    finger_path.addRoundedRect(finger_x, finger_y, finger_w, finger_h,
+    finger_path.addRoundedRect(finger_x, finger_top, finger_w, finger_h,
                                finger_w / 2, finger_w / 2)
+    p.setCompositionMode(QPainter.CompositionMode_Source)
     p.setPen(Qt.NoPen)
+    p.setBrush(Qt.transparent)
+    # Clear a slightly wider area behind the finger for clean separation
+    clear_w = finger_w + s * 0.03
+    clear_path = QPainterPath()
+    clear_path.addRoundedRect(cx - clear_w / 2, finger_top - s * 0.01,
+                              clear_w, finger_h + s * 0.02,
+                              clear_w / 2, clear_w / 2)
+    p.drawPath(clear_path)
+    p.setCompositionMode(QPainter.CompositionMode_SourceOver)
     p.setBrush(draw_color)
     p.drawPath(finger_path)
 

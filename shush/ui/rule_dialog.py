@@ -238,8 +238,12 @@ class RuleDialog(QDialog):
             self.kw_input.clear()
 
     def _edit_keyword(self, item):
-        item.setFlags(item.flags() | Qt.ItemIsEditable)
-        self.kw_list.editItem(item)
+        from PyQt5.QtWidgets import QInputDialog
+        new_text, ok = QInputDialog.getText(
+            self, "Edit Keyword", "Keyword:", text=item.text(),
+        )
+        if ok and new_text.strip():
+            item.setText(new_text.strip())
 
     def _remove_keyword(self):
         for item in self.kw_list.selectedItems():

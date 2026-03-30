@@ -8,7 +8,6 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QButtonGroup,
-    QCheckBox,
     QComboBox,
     QFormLayout,
     QGroupBox,
@@ -27,6 +26,7 @@ from PyQt5.QtWidgets import (
 
 from .. import config
 from ..models import DefaultAction, FocusPreset, GlobalConfig, Rule
+from .toggle_switch import ToggleSwitch
 
 
 class SettingsTab(QWidget):
@@ -76,7 +76,7 @@ class SettingsTab(QWidget):
         # --- Sound control ---
         sound_group = QGroupBox("Sound Control")
         sg_layout = QVBoxLayout(sound_group)
-        self.sound_cb = QCheckBox("Suppress sounds for blocked notifications")
+        self.sound_cb = ToggleSwitch("Suppress sounds for blocked notifications")
         sg_layout.addWidget(self.sound_cb)
         hint2 = QLabel(
             "When enabled, Shush mutes GNOME notification sounds and only "
@@ -105,14 +105,14 @@ class SettingsTab(QWidget):
         # --- Matching ---
         match_group = QGroupBox("Matching")
         mg_layout = QVBoxLayout(match_group)
-        self.case_cb = QCheckBox("Case-sensitive keyword matching")
+        self.case_cb = ToggleSwitch("Case-sensitive keyword matching")
         mg_layout.addWidget(self.case_cb)
         layout.addWidget(match_group)
 
         # --- Logging ---
         log_group = QGroupBox("Activity Log File")
         lg_layout = QVBoxLayout(log_group)
-        self.log_file_cb = QCheckBox("Write suppressed notifications to file")
+        self.log_file_cb = ToggleSwitch("Write suppressed notifications to file")
         lg_layout.addWidget(self.log_file_cb)
         path_row = QHBoxLayout()
         path_label = QLabel("Path:")

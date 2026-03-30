@@ -68,11 +68,11 @@ class MainWindow(QMainWindow):
         self.rules_tab = RulesTab(self.rules, cfg=self.cfg,
                                   installed_apps=self._installed_apps)
         self.rules_tab.rules_changed.connect(self._on_rules_changed)
-        self._add_tab("\u2261  Rules", self.rules_tab)
+        self._add_tab("\u2295  Rules", self.rules_tab)
 
         self.log_tab = LogTab()
         self.log_tab.rule_requested.connect(self._on_rule_from_log)
-        self._add_tab("\u25ce  Activity Log", self.log_tab)
+        self._add_tab("\u2263  Activity Log", self.log_tab)
 
         self.schedule_tab = ScheduleTab(self.cfg)
         self.schedule_tab.schedules_changed.connect(self._on_schedules_changed)

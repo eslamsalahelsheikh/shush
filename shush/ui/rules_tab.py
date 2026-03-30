@@ -98,6 +98,8 @@ class RulesTab(QWidget):
             ("\u2212  Remove", self._on_remove, "destructive"),
             ("\u25b2  Up", self._on_move_up, None),
             ("\u25bc  Down", self._on_move_down, None),
+            ("\u2193  Import", self._on_import, None),
+            ("\u2191  Export", self._on_export, None),
         ]
         for label, slot, obj_name in _btn_defs:
             btn = QPushButton(label)
@@ -106,14 +108,6 @@ class RulesTab(QWidget):
                 btn.setObjectName(obj_name)
             toolbar.addWidget(btn)
         toolbar.addStretch()
-
-        import_btn = QPushButton("\u2191  Import")
-        import_btn.clicked.connect(self._on_import)
-        toolbar.addWidget(import_btn)
-        export_btn = QPushButton("\u2193  Export")
-        export_btn.clicked.connect(self._on_export)
-        toolbar.addWidget(export_btn)
-
         layout.addLayout(toolbar)
 
     def _populate(self):

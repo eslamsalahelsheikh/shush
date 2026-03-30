@@ -39,7 +39,7 @@ QListWidget#nav::item {{
 }}
 QListWidget#nav::item:selected {{
     background-color: {_P.OVERLAY.name()};
-    color: {_P.MAUVE.name()};
+    color: {_P.BLUE.name()};
     font-weight: 600;
 }}
 QListWidget#nav::item:hover:!selected {{
@@ -69,7 +69,7 @@ QGroupBox::title {{
     left: 12px;
     top: 8px;
     padding: 2px 8px;
-    color: {_P.MAUVE.name()};
+    color: {_P.BLUE.name()};
     background-color: {_P.SURFACE.name()};
     border-radius: 4px;
 }}
@@ -98,13 +98,13 @@ QPushButton:disabled {{
     border: 1px solid transparent;
 }}
 QPushButton#primary {{
-    background-color: {_P.MAUVE.name()};
+    background-color: {_P.BLUE.name()};
     color: {_P.BG.name()};
     border: none;
     font-weight: 600;
 }}
 QPushButton#primary:hover {{
-    background-color: #b48cf5;
+    background-color: #a4c4fb;
     color: {_P.BG.name()};
 }}
 QPushButton#destructive {{
@@ -124,7 +124,7 @@ QTreeWidget {{
     border-radius: 10px;
     padding: 4px;
     outline: 0;
-    selection-background-color: rgba(203, 166, 247, 0.15);
+    selection-background-color: rgba(137, 180, 250, 0.15);
     selection-color: {_P.TEXT.name()};
 }}
 QTreeWidget::item {{
@@ -133,7 +133,7 @@ QTreeWidget::item {{
     margin: 1px 0;
 }}
 QTreeWidget::item:selected {{
-    background-color: rgba(203, 166, 247, 0.15);
+    background-color: rgba(137, 180, 250, 0.15);
 }}
 QTreeWidget::item:hover:!selected {{
     background-color: rgba(69, 71, 90, 0.4);
@@ -158,7 +158,7 @@ QTableWidget {{
     padding: 4px;
     gridline-color: rgba(69, 71, 90, 0.5);
     outline: 0;
-    selection-background-color: rgba(203, 166, 247, 0.15);
+    selection-background-color: rgba(137, 180, 250, 0.15);
     selection-color: {_P.TEXT.name()};
 }}
 QTableWidget::item {{
@@ -172,11 +172,11 @@ QLineEdit, QTextEdit {{
     border: 1px solid {_P.OVERLAY.name()};
     border-radius: 7px;
     padding: 6px 10px;
-    selection-background-color: {_P.MAUVE.name()};
+    selection-background-color: {_P.BLUE.name()};
     selection-color: {_P.BG.name()};
 }}
 QLineEdit:focus, QTextEdit:focus {{
-    border: 1px solid {_P.MAUVE.name()};
+    border: 1px solid {_P.BLUE.name()};
 }}
 
 /* ── Combo boxes ────────────────────────────────────── */
@@ -192,7 +192,7 @@ QComboBox:hover {{
     border: 1px solid {_P.BLUE.name()};
 }}
 QComboBox:focus {{
-    border: 1px solid {_P.MAUVE.name()};
+    border: 1px solid {_P.BLUE.name()};
 }}
 QComboBox::drop-down {{
     border: none;
@@ -211,7 +211,7 @@ QComboBox QAbstractItemView {{
     border: 1px solid {_P.OVERLAY.name()};
     border-radius: 8px;
     padding: 4px;
-    selection-background-color: rgba(203, 166, 247, 0.2);
+    selection-background-color: rgba(137, 180, 250, 0.2);
     selection-color: {_P.TEXT.name()};
     outline: 0;
 }}
@@ -229,8 +229,8 @@ QCheckBox::indicator {{
     background-color: transparent;
 }}
 QCheckBox::indicator:checked {{
-    background-color: {_P.MAUVE.name()};
-    border: 2px solid {_P.MAUVE.name()};
+    background-color: {_P.BLUE.name()};
+    border: 2px solid {_P.BLUE.name()};
     image: none;
 }}
 QCheckBox::indicator:hover {{
@@ -250,8 +250,8 @@ QRadioButton::indicator {{
     background-color: transparent;
 }}
 QRadioButton::indicator:checked {{
-    background-color: {_P.MAUVE.name()};
-    border: 2px solid {_P.MAUVE.name()};
+    background-color: {_P.BLUE.name()};
+    border: 2px solid {_P.BLUE.name()};
 }}
 QRadioButton::indicator:hover {{
     border: 2px solid {_P.BLUE.name()};
@@ -270,7 +270,7 @@ QListWidget::item {{
     border-radius: 4px;
 }}
 QListWidget::item:selected {{
-    background-color: rgba(203, 166, 247, 0.15);
+    background-color: rgba(137, 180, 250, 0.15);
     color: {_P.TEXT.name()};
 }}
 QListWidget::item:hover:!selected {{
@@ -375,7 +375,7 @@ QMenu::item {{
     border-radius: 4px;
 }}
 QMenu::item:selected {{
-    background-color: rgba(203, 166, 247, 0.2);
+    background-color: rgba(137, 180, 250, 0.2);
 }}
 QMenu::separator {{
     height: 1px;
