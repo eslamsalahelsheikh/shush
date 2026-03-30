@@ -1,0 +1,13 @@
+[Unit]
+Description=Shush — Linux notification filter
+Documentation=https://github.com/eslamsalahelsheikh/shush
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/shush --minimized
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

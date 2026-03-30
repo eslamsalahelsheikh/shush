@@ -1,0 +1,137 @@
+"""Main application window — tab bar with Rules, Log, Settings."""
+
+from __future__ import annotations
+
+import logging
+from typing import List
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMainWindow,
+    QMessageBox,
+    QStackedWidget,
+    QStatusBar,
+    QVBoxLayout,
+    QWidget,
+)
+
+from .. import __app_name__, __version__
+from ..config import save
+from ..models import GlobalConfig, LogEntry, Rule
+from .log_tab import LogTab
+from .resources import Palette, app_icon
+from .rules_tab import RulesTab
+from .settings_tab import SettingsTab
+
+log = logging.getLogger(__name__)
+
+
+class MainWindow(QMainWindow):
+    def __init__(self, cfg: GlobalConfig, rules: List[Rule],
+                 installed_apps: list[str] | None = None):
+        super().__init__()
+        self.cfg = cfg
+        self.rules = rules
+        self._installed_apps = installed_apps or []
+
+        self.setWindowTitle(f"{__app_name__} \u2014 Notification Filter")
+        self.setWindowIcon(app_icon())
+        self.resize(820, 540)
+        self.setMinimumSize(620, 400)
+
+        central = QWidget()
+        self.setCentralWidget(central)
+        root = QHBoxLayout(central)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
+
+        self.nav = QListWidget()
+        self.nav.setFixedWidth(150)
+        self.nav.setSpacing(2)
+        self.nav.currentRowChanged.connect(self._switch_tab)
+        root.addWidget(self.nav)
+
+        self.stack = QStackedWidget()
+        root.addWidget(self.stack)
+
+        self.rules_tab = RulesTab(self.rules, cfg=self.cfg,
+                                  installed_apps=self._installed_apps)
+        self.rules_tab.rules_changed.connect(self._on_rules_changed)
+        self._add_tab("Rules", self.rules_tab)
+
+        self.log_tab = LogTab()
+        self._add_tab("Activity Log", self.log_tab)
+
+        self.settings_tab = SettingsTab(self.cfg, self.rules)
+        self.settings_tab.settings_changed.connect(self._on_settings_changed)
+        self._add_tab("Settings", self.settings_tab)
+
+        self.nav.setCurrentRow(0)
+
+        self.statusBar().showMessage("Ready")
+        self._update_status()
+
+    def _add_tab(self, name: str, widget: QWidget):
+        item = QListWidgetItem(name)
+        item.setSizeHint(item.sizeHint().__class__(150, 40))
+        item.setTextAlignment(Qt.AlignCenter)
+        self.nav.addItem(item)
+        self.stack.addWidget(widget)
+
+    def _switch_tab(self, index: int):
+        self.stack.setCurrentIndex(index)
+
+    def _on_rules_changed(self):
+        self.rules_tab.sync_enabled_states()
+        self._save()
+        self._update_status()
+
+    def _on_settings_changed(self):
+        self._save()
+        self._update_status()
+
+    def _save(self):
+        save(self.cfg, self.rules)
+        log.debug("Configuration saved")
+
+    def _update_status(self):
+        n_enabled = sum(1 for r in self.rules if r.enabled)
+        mode = "whitelist" if self.cfg.default_action.value == "suppress_all" else "blacklist"
+        self.statusBar().showMessage(
+            f"{n_enabled}/{len(self.rules)} rules enabled  |  Mode: {mode}"
+        )
+
+    def add_log_entry(self, entry: LogEntry):
+        self.log_tab.add_entry(entry)
+
+    def closeEvent(self, event):
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Close Shush")
+        msg.setText("Shush is still filtering in the background.")
+        msg.setInformativeText("Keep running or stop completely?")
+        minimize_btn = msg.addButton("Minimize to Tray", QMessageBox.AcceptRole)
+        quit_btn = msg.addButton("Quit Shush", QMessageBox.DestructiveRole)
+        cancel_btn = msg.addButton(QMessageBox.Cancel)
+        msg.setDefaultButton(minimize_btn)
+
+        msg.exec_()
+        clicked = msg.clickedButton()
+
+        if clicked == minimize_btn:
+            self.hide()
+            event.ignore()
+        elif clicked == quit_btn:
+            event.accept()
+            QApplication.instance().quit()
+        else:
+            event.ignore()
+
+    def get_engine_params(self):
+        """Return (cfg, rules) to update the RuleEngine after changes."""
+        return self.cfg, self.rules

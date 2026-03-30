@@ -1,0 +1,28 @@
+Source: shush
+Section: utils
+Priority: optional
+Maintainer: Eslam Elshiekh <eslam@example.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-pyqt5,
+               python3-dbus,
+               python3-gi
+Standards-Version: 4.6.2
+Homepage: https://github.com/eslamsalahelsheikh/shush
+Rules-Requires-Root: no
+
+Package: shush
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-pyqt5,
+         python3-dbus,
+         python3-gi,
+         gir1.2-glib-2.0
+Description: Linux notification filter with a GUI rule editor
+ Shush monitors desktop notifications via D-Bus and suppresses everything
+ except those matching user-defined keyword rules. Features a full PyQt5
+ GUI for managing per-person and per-app rules, a live activity log,
+ focus-mode presets, and system tray integration.

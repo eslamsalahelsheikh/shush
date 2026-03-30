@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Shush
+GenericName=Notification Filter
+Comment=Suppress desktop notifications except those matching your rules
+Exec=shush
+Icon=shush
+Terminal=false
+Categories=Utility;GTK;
+Keywords=notifications;filter;focus;dnd;
+StartupNotify=false

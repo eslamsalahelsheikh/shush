@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shush-notifications"
+version = "0.1.0"
+description = "Linux notification filter with a GUI rule editor. Suppress desktop notifications except those matching your keyword rules."
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Eslam Salah"},
+]
+keywords = ["notifications", "dbus", "linux", "filter", "gui", "desktop", "focus"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Desktop Environment",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "PyQt5>=5.15",
+    "dbus-python>=1.2",
+    "PyGObject>=3.42",
+]
+
+[project.urls]
+Homepage = "https://github.com/eslamsalahelsheikh/shush"
+Issues = "https://github.com/eslamsalahelsheikh/shush/issues"
+
+[project.scripts]
+shush = "shush.app:run"
+
+[project.gui-scripts]
+shush-gui = "shush.app:run"
+
+[tool.setuptools.packages.find]
+include = ["shush*"]
