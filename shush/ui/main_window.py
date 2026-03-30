@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import (
 from .. import __app_name__, __version__
 from ..config import save
 from ..models import GlobalConfig, LogEntry, Rule
+from .about_tab import AboutTab
 from .log_tab import LogTab
 from .resources import app_icon
 from .rules_tab import RulesTab
@@ -71,6 +72,9 @@ class MainWindow(QMainWindow):
         self.settings_tab = SettingsTab(self.cfg, self.rules)
         self.settings_tab.settings_changed.connect(self._on_settings_changed)
         self._add_tab("\u2699\ufe0f  Settings", self.settings_tab)
+
+        self.about_tab = AboutTab()
+        self._add_tab("\u2139\ufe0f  About", self.about_tab)
 
         self.nav.setCurrentRow(0)
 
