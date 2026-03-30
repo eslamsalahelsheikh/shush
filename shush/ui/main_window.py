@@ -28,6 +28,7 @@ from ..models import GlobalConfig, LogEntry, Rule
 from .about_tab import AboutTab
 from .log_tab import LogTab
 from .resources import app_icon
+from .rule_dialog import RuleDialog
 from .rules_tab import RulesTab
 from .schedule_tab import ScheduleTab
 from .settings_tab import SettingsTab
@@ -136,11 +137,21 @@ class MainWindow(QMainWindow):
         anim.start(QPropertyAnimation.DeleteWhenStopped)
 
     def _on_rule_from_log(self, rule):
-        """Add a pre-filled rule from the Activity Log and switch to the Rules tab."""
-        self.rules.append(rule)
-        self.rules_tab._populate()
-        self.rules_tab.rules_changed.emit()
-        self.nav.setCurrentRow(0)
+        """Open the rule editor pre-filled so the user can review before adding."""
+        seen = self.cfg.seen_apps if self.cfg else []
+        dlg = RuleDialog(
+            rule=rule,
+            seen_apps=seen,
+            installed_apps=self.rules_tab.installed_apps,
+            schedules=self.cfg.schedules,
+            parent=self,
+        )
+        if dlg.exec_() == RuleDialog.Accepted:
+            confirmed = dlg.get_rule()
+            self.rules.append(confirmed)
+            self.rules_tab._populate()
+            self.rules_tab.rules_changed.emit()
+            self.nav.setCurrentRow(0)
 
     def _on_rules_changed(self):
         self.rules_tab.sync_enabled_states()
