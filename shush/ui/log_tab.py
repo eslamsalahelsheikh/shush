@@ -12,12 +12,14 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QAbstractItemView,
+    QComboBox,
     QDialog,
     QFileDialog,
     QFormLayout,
     QHBoxLayout,
     QHeaderView,
     QLabel,
+    QLineEdit,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -135,6 +137,28 @@ class LogTab(QWidget):
         layout.setContentsMargins(12, 12, 12, 8)
         layout.setSpacing(8)
 
+        filter_row = QHBoxLayout()
+        filter_row.setSpacing(6)
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText("Search by app, summary, or rule\u2026")
+        self.search_edit.setClearButtonEnabled(True)
+        filter_row.addWidget(self.search_edit)
+
+        self.status_filter = QComboBox()
+        self.status_filter.addItem("All", "all")
+        self.status_filter.addItem("Suppressed only", "suppressed")
+        self.status_filter.addItem("Allowed only", "allowed")
+        self.status_filter.setFixedWidth(150)
+        filter_row.addWidget(self.status_filter)
+        layout.addLayout(filter_row)
+
+        self._search_timer = QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(300)
+        self._search_timer.timeout.connect(self._apply_filters)
+        self.search_edit.textChanged.connect(lambda: self._search_timer.start())
+        self.status_filter.currentIndexChanged.connect(lambda: self._apply_filters())
+
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(["Time", "Status", "App", "Summary", "Rule"])
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -209,6 +233,37 @@ class LogTab(QWidget):
             if e is entry:
                 return i
         return len(self._entries) - 1
+
+    def _apply_filters(self):
+        """Hide rows that don't match the current search text + status filter."""
+        text = self.search_edit.text().strip().lower()
+        status = self.status_filter.currentData()
+        for row in range(self.table.rowCount()):
+            status_item = self.table.item(row, 1)
+            app_item = self.table.item(row, 2)
+            summary_item = self.table.item(row, 3)
+            rule_item = self.table.item(row, 4)
+            if status_item is None:
+                continue
+            if status == "suppressed" and status_item.text() != "Suppressed":
+                self.table.setRowHidden(row, True)
+                continue
+            if status == "allowed" and status_item.text() != "Allowed":
+                self.table.setRowHidden(row, True)
+                continue
+            if text:
+                haystack = " ".join(
+                    (it.text() if it else "") for it in (app_item, summary_item, rule_item)
+                ).lower()
+                if text not in haystack:
+                    self.table.setRowHidden(row, True)
+                    continue
+            self.table.setRowHidden(row, False)
+
+    def focus_search(self):
+        """Give keyboard focus to the search bar."""
+        self.search_edit.setFocus()
+        self.search_edit.selectAll()
 
     def _on_double_click(self, row: int, _col: int):
         item = self.table.item(row, 0)
