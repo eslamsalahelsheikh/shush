@@ -242,8 +242,9 @@ class RuleDialog(QDialog):
         if app_text is None:
             app_text = self.app_filter_combo.currentText().strip()
 
+        import uuid
         return Rule(
-            id=self._rule.id if self._rule else "",
+            id=self._rule.id if self._rule else uuid.uuid4().hex[:12],
             name=self.name_edit.text().strip() or "Untitled",
             enabled=self.enabled_cb.isChecked(),
             action=self.action_combo.currentData(),
