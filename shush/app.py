@@ -18,6 +18,7 @@ from .config import load, save
 from .dbus_filter import DBusFilter
 from .desktop_apps import scan_installed_apps
 from .rule_engine import RuleEngine
+from .scheduler import Scheduler
 from .ui.main_window import MainWindow
 from .ui.resources import app_icon
 from .ui.tray import TrayIcon
@@ -90,7 +91,6 @@ def run(argv=None) -> int:
     )
 
     cfg, rules = load()
-    engine = RuleEngine(cfg, rules)
 
     installed_apps = scan_installed_apps()
     log.debug("Scanned %d installed apps from .desktop files", len(installed_apps))
@@ -104,15 +104,20 @@ def run(argv=None) -> int:
     from .ui.theme import STYLESHEET
     qt_app.setStyleSheet(STYLESHEET)
 
+    scheduler = Scheduler(cfg)
+    engine = RuleEngine(cfg, rules, scheduler=scheduler)
+
     if cfg.sound_control:
         sound_control.activate()
 
-    dbus_filter = DBusFilter(engine, dry_run=args.dry_run)
+    dbus_filter = DBusFilter(engine, dry_run=args.dry_run, scheduler=scheduler)
 
     window = MainWindow(cfg, rules, installed_apps=installed_apps)
+    window.schedule_tab.set_scheduler(scheduler)
 
     def on_rules_or_settings_changed():
         engine.update(cfg, rules)
+        scheduler.update(cfg)
         if cfg.sound_control and not sound_control.is_active():
             sound_control.activate()
         elif not cfg.sound_control and sound_control.is_active():
@@ -120,6 +125,7 @@ def run(argv=None) -> int:
 
     window.rules_tab.rules_changed.connect(on_rules_or_settings_changed)
     window.settings_tab.settings_changed.connect(on_rules_or_settings_changed)
+    window.schedule_tab.schedules_changed.connect(on_rules_or_settings_changed)
 
     def on_new_app(app_name: str):
         if cfg.record_app(app_name):
@@ -135,6 +141,15 @@ def run(argv=None) -> int:
     dbus_filter.connect_new_app(on_new_app)
 
     tray = TrayIcon()
+
+    def on_schedule_state_changed(active: bool):
+        if active:
+            tray.setToolTip("Shush \u2014 notification filter active")
+        else:
+            text = scheduler.next_change_text()
+            tray.setToolTip(f"Shush \u2014 {text}")
+
+    scheduler.state_changed.connect(on_schedule_state_changed)
 
     def on_tray_click():
         if window.isVisible():
@@ -162,7 +177,7 @@ def run(argv=None) -> int:
 
     qt_app.aboutToQuit.connect(lambda: window.log_tab._persist())
 
-    signal.signal(signal.SIGHUP, lambda *_: _reload(cfg, rules, engine, window))
+    signal.signal(signal.SIGHUP, lambda *_: _reload(cfg, rules, engine, window, scheduler))
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     log.info("Shush %s started  (dry_run=%s)", __version__, args.dry_run)
@@ -182,13 +197,15 @@ def _make_pause_handler(dbus_filter: DBusFilter):
     return handler
 
 
-def _reload(cfg, rules, engine, window):
+def _reload(cfg, rules, engine, window, scheduler):
     from .config import load as reload_config
     new_cfg, new_rules = reload_config()
     cfg.__dict__.update(new_cfg.__dict__)
     rules.clear()
     rules.extend(new_rules)
     engine.update(cfg, rules)
+    scheduler.update(cfg)
     window.rules_tab._populate()
     window.settings_tab._load()
+    window.schedule_tab._populate()
     log.info("Configuration reloaded via SIGHUP")

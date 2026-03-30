@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from ..models import Action, MatchField, Rule
+from ..models import Action, MatchField, Rule, Schedule
 
 _SEPARATOR = "─"
 _SEEN_HEADER = f"{_SEPARATOR * 3}  Seen (exact D-Bus names)  {_SEPARATOR * 3}"
@@ -37,6 +37,7 @@ class RuleDialog(QDialog):
         rule: Optional[Rule] = None,
         seen_apps: Optional[List[str]] = None,
         installed_apps: Optional[List[str]] = None,
+        schedules: Optional[List[Schedule]] = None,
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
@@ -45,6 +46,7 @@ class RuleDialog(QDialog):
         self._rule = rule
         self._seen_apps = seen_apps or []
         self._installed_apps = installed_apps or []
+        self._schedules = schedules or []
         self._build_ui()
         if rule:
             self._load(rule)
@@ -136,6 +138,13 @@ class RuleDialog(QDialog):
         self.notes_edit.setPlaceholderText("Optional notes about this rule")
         form.addRow("Notes:", self.notes_edit)
 
+        self.schedule_combo = QComboBox()
+        self.schedule_combo.addItem("(use global schedule)", None)
+        for sched in self._schedules:
+            label = f"{sched.name}  ({sched.days_display()}, {sched.start_time}\u2013{sched.end_time})"
+            self.schedule_combo.addItem(label, sched.id)
+        form.addRow("Schedule:", self.schedule_combo)
+
         layout.addLayout(form)
 
         self._error_label = QLabel("")
@@ -199,6 +208,10 @@ class RuleDialog(QDialog):
             self.app_filter_combo.setCurrentText(rule.app_filter)
         self.regex_cb.setChecked(rule.use_regex)
         self.notes_edit.setPlainText(rule.notes)
+        if rule.schedule_id:
+            idx = self.schedule_combo.findData(rule.schedule_id)
+            if idx >= 0:
+                self.schedule_combo.setCurrentIndex(idx)
 
     def _validate_and_accept(self):
         has_keywords = self.kw_list.count() > 0
@@ -258,4 +271,5 @@ class RuleDialog(QDialog):
             app_filter=app_text,
             use_regex=self.regex_cb.isChecked(),
             notes=self.notes_edit.toPlainText().strip(),
+            schedule_id=self.schedule_combo.currentData(),
         )

@@ -145,9 +145,11 @@ class RulesTab(QWidget):
 
     def _make_dialog(self, rule=None) -> RuleDialog:
         seen = self.cfg.seen_apps if self.cfg else []
+        schedules = self.cfg.schedules if self.cfg else []
         return RuleDialog(
             rule=rule, seen_apps=seen,
-            installed_apps=self.installed_apps, parent=self,
+            installed_apps=self.installed_apps,
+            schedules=schedules, parent=self,
         )
 
     def _on_add(self):

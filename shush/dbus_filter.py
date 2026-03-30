@@ -14,6 +14,7 @@ from .models import LogEntry
 
 if TYPE_CHECKING:
     from .rule_engine import RuleEngine
+    from .scheduler import Scheduler
 
 log = logging.getLogger(__name__)
 
@@ -30,10 +31,12 @@ class DBusFilter:
            without a dedicated GLib thread.
     """
 
-    def __init__(self, engine: RuleEngine, dry_run: bool = False):
+    def __init__(self, engine: RuleEngine, dry_run: bool = False,
+                 scheduler: Scheduler | None = None):
         self.engine = engine
         self.dry_run = dry_run
         self.paused = False
+        self.scheduler: Scheduler | None = scheduler
         self._pending: Dict[int, dict] = {}
         self._recently_allowed: Set[str] = set()
         self._recently_closed: Set[int] = set()
@@ -118,6 +121,14 @@ class DBusFilter:
                 timestamp=datetime.now(), app_name=app_name,
                 summary=summary, body=body, suppressed=False,
                 matched_rule="(paused)",
+            ))
+            return
+
+        if self.scheduler and not self.scheduler.is_globally_active():
+            self._emit_log(LogEntry(
+                timestamp=datetime.now(), app_name=app_name,
+                summary=summary, body=body, suppressed=False,
+                matched_rule="(scheduled off)",
             ))
             return
 

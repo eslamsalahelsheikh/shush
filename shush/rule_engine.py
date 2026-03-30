@@ -5,9 +5,12 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from .models import Action, DefaultAction, GlobalConfig, MatchField, Rule
+
+if TYPE_CHECKING:
+    from .scheduler import Scheduler
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +24,9 @@ class MatchResult:
 class RuleEngine:
     """Evaluates incoming notifications against configured rules."""
 
-    def __init__(self, cfg: GlobalConfig, rules: List[Rule]):
+    def __init__(self, cfg: GlobalConfig, rules: List[Rule],
+                 scheduler: Scheduler | None = None):
+        self.scheduler = scheduler
         self.update(cfg, rules)
 
     def update(self, cfg: GlobalConfig, rules: List[Rule]) -> None:
@@ -64,6 +69,8 @@ class RuleEngine:
             if not rule.enabled:
                 continue
             if preset_ids is not None and rule.id not in preset_ids:
+                continue
+            if self.scheduler and rule.schedule_id and not self.scheduler.is_rule_active(rule):
                 continue
             if rule.app_filter and rule.app_filter.lower() != app_name.lower():
                 continue

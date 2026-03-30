@@ -27,6 +27,7 @@ from .about_tab import AboutTab
 from .log_tab import LogTab
 from .resources import app_icon
 from .rules_tab import RulesTab
+from .schedule_tab import ScheduleTab
 from .settings_tab import SettingsTab
 
 log = logging.getLogger(__name__)
@@ -68,6 +69,10 @@ class MainWindow(QMainWindow):
 
         self.log_tab = LogTab()
         self._add_tab("\u25ce  Activity Log", self.log_tab)
+
+        self.schedule_tab = ScheduleTab(self.cfg)
+        self.schedule_tab.schedules_changed.connect(self._on_schedules_changed)
+        self._add_tab("\u25F7  Schedule", self.schedule_tab)
 
         self.settings_tab = SettingsTab(self.cfg, self.rules)
         self.settings_tab.settings_changed.connect(self._on_settings_changed)
@@ -113,6 +118,10 @@ class MainWindow(QMainWindow):
 
     def _on_rules_changed(self):
         self.rules_tab.sync_enabled_states()
+        self._save()
+        self._update_status()
+
+    def _on_schedules_changed(self):
         self._save()
         self._update_status()
 
