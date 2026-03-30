@@ -135,6 +135,7 @@ class LogTab(QWidget):
     def _load_saved_entries(self):
         for entry in reversed(self._entries[-_MAX_LOG_ROWS:]):
             self._append_row(entry)
+        self._update_stats()
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -155,6 +156,11 @@ class LogTab(QWidget):
         self.status_filter.setFixedWidth(150)
         filter_row.addWidget(self.status_filter)
         layout.addLayout(filter_row)
+
+        self._stats_label = QLabel()
+        self._stats_label.setProperty("subtext", True)
+        self._stats_label.setWordWrap(True)
+        layout.addWidget(self._stats_label)
 
         self._search_timer = QTimer(self)
         self._search_timer.setSingleShot(True)
@@ -205,6 +211,7 @@ class LogTab(QWidget):
     def add_entry(self, entry: LogEntry):
         self._entries.append(entry)
         self._dirty = True
+        self._update_stats()
         if self._paused:
             return
         self._write_row(0, entry)
@@ -239,6 +246,20 @@ class LogTab(QWidget):
             if e is entry:
                 return i
         return len(self._entries) - 1
+
+    def _update_stats(self):
+        from collections import Counter
+        suppressed = sum(1 for e in self._entries if e.suppressed)
+        allowed = len(self._entries) - suppressed
+        app_counts = Counter(
+            e.app_name for e in self._entries if e.suppressed and e.app_name
+        )
+        top = app_counts.most_common(3)
+        parts = [f"{suppressed} suppressed", f"{allowed} allowed"]
+        if top:
+            top_str = ", ".join(f"{name} ({cnt})" for name, cnt in top)
+            parts.append(f"Top: {top_str}")
+        self._stats_label.setText("  |  ".join(parts))
 
     def _apply_filters(self):
         """Hide rows that don't match the current search text + status filter."""
@@ -351,3 +372,4 @@ class LogTab(QWidget):
         self.table.setRowCount(0)
         self._dirty = True
         self._persist()
+        self._update_stats()
