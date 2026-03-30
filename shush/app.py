@@ -13,7 +13,7 @@ from gi.repository import GLib
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication
 
-from . import __app_name__, __version__
+from . import __app_name__, __version__, sound_control
 from .config import load, save
 from .dbus_filter import DBusFilter
 from .desktop_apps import scan_installed_apps
@@ -101,12 +101,19 @@ def run(argv=None) -> int:
     qt_app.setWindowIcon(app_icon())
     qt_app.setQuitOnLastWindowClosed(False)
 
+    if cfg.sound_control:
+        sound_control.activate()
+
     dbus_filter = DBusFilter(engine, dry_run=args.dry_run)
 
     window = MainWindow(cfg, rules, installed_apps=installed_apps)
 
     def on_rules_or_settings_changed():
         engine.update(cfg, rules)
+        if cfg.sound_control and not sound_control.is_active():
+            sound_control.activate()
+        elif not cfg.sound_control and sound_control.is_active():
+            sound_control.restore()
 
     window.rules_tab.rules_changed.connect(on_rules_or_settings_changed)
     window.settings_tab.settings_changed.connect(on_rules_or_settings_changed)

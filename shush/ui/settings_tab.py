@@ -55,6 +55,18 @@ class SettingsTab(QWidget):
         ))
         layout.addWidget(action_group)
 
+        # --- Sound control ---
+        sound_group = QGroupBox("Sound Control")
+        sg_layout = QVBoxLayout(sound_group)
+        self.sound_cb = QCheckBox("Suppress notification sounds for blocked notifications")
+        sg_layout.addWidget(self.sound_cb)
+        sg_layout.addWidget(QLabel(
+            '<small><i>When enabled, Shush mutes GNOME notification sounds and only '
+            'plays them for allowed notifications. Requires gsettings and '
+            'canberra-gtk-play. Original settings are restored on exit.</i></small>'
+        ))
+        layout.addWidget(sound_group)
+
         # --- Matching ---
         match_group = QGroupBox("Matching")
         mg_layout = QFormLayout(match_group)
@@ -109,6 +121,7 @@ class SettingsTab(QWidget):
             self.suppress_radio.setChecked(True)
         else:
             self.allow_radio.setChecked(True)
+        self.sound_cb.setChecked(self.cfg.sound_control)
         self.case_cb.setChecked(self.cfg.case_sensitive)
         self.log_file_cb.setChecked(self.cfg.log_to_file)
         self.log_path_edit.setText(self.cfg.log_file)
@@ -129,6 +142,7 @@ class SettingsTab(QWidget):
             DefaultAction.SUPPRESS_ALL if self.suppress_radio.isChecked()
             else DefaultAction.ALLOW_ALL
         )
+        self.cfg.sound_control = self.sound_cb.isChecked()
         self.cfg.case_sensitive = self.case_cb.isChecked()
         self.cfg.log_to_file = self.log_file_cb.isChecked()
         self.cfg.log_file = self.log_path_edit.text().strip()

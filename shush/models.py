@@ -93,6 +93,7 @@ class GlobalConfig:
     focus_presets: List[FocusPreset] = field(default_factory=list)
     active_preset_id: Optional[str] = None
     seen_apps: List[str] = field(default_factory=list)
+    sound_control: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -104,6 +105,7 @@ class GlobalConfig:
             "focus_presets": [p.to_dict() for p in self.focus_presets],
             "active_preset_id": self.active_preset_id,
             "seen_apps": sorted(set(self.seen_apps)),
+            "sound_control": self.sound_control,
         }
 
     @classmethod
@@ -117,6 +119,7 @@ class GlobalConfig:
             focus_presets=[FocusPreset.from_dict(p) for p in d.get("focus_presets", [])],
             active_preset_id=d.get("active_preset_id"),
             seen_apps=d.get("seen_apps", []),
+            sound_control=d.get("sound_control", False),
         )
 
     def record_app(self, app_name: str) -> bool:

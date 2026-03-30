@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Dict, Set
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 
+from . import sound_control
 from .models import LogEntry
 
 if TYPE_CHECKING:
@@ -133,6 +134,8 @@ class DBusFilter:
             }
         else:
             log.debug("ALLOW app=%r summary=%r rule=%s", app_name, summary, rule_name)
+            if sound_control.is_active():
+                sound_control.play_notification_sound()
             self._emit_log(LogEntry(
                 timestamp=datetime.now(), app_name=app_name,
                 summary=summary, body=body, suppressed=False,
