@@ -35,7 +35,8 @@ class LogTab(QWidget):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(12, 12, 12, 8)
+        layout.setSpacing(8)
 
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(["Time", "Status", "App", "Summary", "Rule"])
@@ -53,16 +54,20 @@ class LogTab(QWidget):
         layout.addWidget(self.table)
 
         toolbar = QHBoxLayout()
-        self.pause_btn = QPushButton("Pause Log")
+        toolbar.setContentsMargins(0, 4, 0, 0)
+        toolbar.setSpacing(6)
+
+        self.pause_btn = QPushButton("\u23f8  Pause Log")
         self.pause_btn.setCheckable(True)
         self.pause_btn.toggled.connect(self._toggle_pause)
         toolbar.addWidget(self.pause_btn)
 
-        export_btn = QPushButton("Export CSV")
+        export_btn = QPushButton("\U0001f4be  Export CSV")
         export_btn.clicked.connect(self._export)
         toolbar.addWidget(export_btn)
 
-        clear_btn = QPushButton("Clear")
+        clear_btn = QPushButton("\U0001f5d1  Clear")
+        clear_btn.setObjectName("destructive")
         clear_btn.clicked.connect(self._clear)
         toolbar.addWidget(clear_btn)
 
@@ -96,7 +101,7 @@ class LogTab(QWidget):
 
     def _toggle_pause(self, checked: bool):
         self._paused = checked
-        self.pause_btn.setText("Resume Log" if checked else "Pause Log")
+        self.pause_btn.setText("\u25b6  Resume Log" if checked else "\u23f8  Pause Log")
         if not checked:
             self._flush_pending()
 

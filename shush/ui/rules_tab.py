@@ -59,7 +59,8 @@ class RulesTab(QWidget):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(12, 12, 12, 8)
+        layout.setSpacing(8)
 
         self.tree = _RuleTree()
         self.tree.setHeaderLabels(["", "Name", "Action", "Keywords", "App Filter"])
@@ -80,16 +81,21 @@ class RulesTab(QWidget):
         layout.addWidget(self.tree)
 
         toolbar = QHBoxLayout()
-        for label, slot in [
-            ("Add", self._on_add),
-            ("Edit", self._on_edit),
-            ("Duplicate", self._on_duplicate),
-            ("Remove", self._on_remove),
-            ("Move Up", self._on_move_up),
-            ("Move Down", self._on_move_down),
-        ]:
+        toolbar.setContentsMargins(8, 6, 8, 6)
+        toolbar.setSpacing(6)
+        _btn_defs = [
+            ("\u2795  Add", self._on_add, "primary"),
+            ("\u270f  Edit", self._on_edit, None),
+            ("\u2398  Duplicate", self._on_duplicate, None),
+            ("\U0001f5d1  Remove", self._on_remove, "destructive"),
+            ("\u25b2  Up", self._on_move_up, None),
+            ("\u25bc  Down", self._on_move_down, None),
+        ]
+        for label, slot, obj_name in _btn_defs:
             btn = QPushButton(label)
             btn.clicked.connect(slot)
+            if obj_name:
+                btn.setObjectName(obj_name)
             toolbar.addWidget(btn)
         toolbar.addStretch()
         layout.addLayout(toolbar)

@@ -38,6 +38,8 @@ class SettingsTab(QWidget):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(12, 12, 12, 8)
+        layout.setSpacing(10)
 
         # --- Default action ---
         action_group = QGroupBox("Default Action (when no rule matches)")
@@ -112,7 +114,8 @@ class SettingsTab(QWidget):
 
         layout.addStretch()
 
-        apply_btn = QPushButton("Apply Settings")
+        apply_btn = QPushButton("\u2714  Apply Settings")
+        apply_btn.setObjectName("primary")
         apply_btn.clicked.connect(self._apply)
         layout.addWidget(apply_btn)
 

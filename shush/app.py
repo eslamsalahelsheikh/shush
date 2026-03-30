@@ -101,6 +101,9 @@ def run(argv=None) -> int:
     qt_app.setWindowIcon(app_icon())
     qt_app.setQuitOnLastWindowClosed(False)
 
+    from .ui.theme import STYLESHEET
+    qt_app.setStyleSheet(STYLESHEET)
+
     if cfg.sound_control:
         sound_control.activate()
 

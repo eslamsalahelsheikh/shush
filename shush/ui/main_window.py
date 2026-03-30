@@ -5,10 +5,10 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QEasingCurve, QPropertyAnimation, Qt
 from PyQt5.QtWidgets import (
     QApplication,
-    QCheckBox,
+    QGraphicsOpacityEffect,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -16,7 +16,6 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QStackedWidget,
-    QStatusBar,
     QVBoxLayout,
     QWidget,
 )
@@ -25,7 +24,7 @@ from .. import __app_name__, __version__
 from ..config import save
 from ..models import GlobalConfig, LogEntry, Rule
 from .log_tab import LogTab
-from .resources import Palette, app_icon
+from .resources import app_icon
 from .rules_tab import RulesTab
 from .settings_tab import SettingsTab
 
@@ -42,8 +41,8 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle(f"{__app_name__} \u2014 Notification Filter")
         self.setWindowIcon(app_icon())
-        self.resize(820, 540)
-        self.setMinimumSize(620, 400)
+        self.resize(880, 580)
+        self.setMinimumSize(660, 420)
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -52,8 +51,9 @@ class MainWindow(QMainWindow):
         root.setSpacing(0)
 
         self.nav = QListWidget()
-        self.nav.setFixedWidth(150)
-        self.nav.setSpacing(2)
+        self.nav.setObjectName("nav")
+        self.nav.setFixedWidth(170)
+        self.nav.setSpacing(4)
         self.nav.currentRowChanged.connect(self._switch_tab)
         root.addWidget(self.nav)
 
@@ -63,14 +63,14 @@ class MainWindow(QMainWindow):
         self.rules_tab = RulesTab(self.rules, cfg=self.cfg,
                                   installed_apps=self._installed_apps)
         self.rules_tab.rules_changed.connect(self._on_rules_changed)
-        self._add_tab("Rules", self.rules_tab)
+        self._add_tab("\U0001f4cb  Rules", self.rules_tab)
 
         self.log_tab = LogTab()
-        self._add_tab("Activity Log", self.log_tab)
+        self._add_tab("\U0001f4ca  Activity Log", self.log_tab)
 
         self.settings_tab = SettingsTab(self.cfg, self.rules)
         self.settings_tab.settings_changed.connect(self._on_settings_changed)
-        self._add_tab("Settings", self.settings_tab)
+        self._add_tab("\u2699\ufe0f  Settings", self.settings_tab)
 
         self.nav.setCurrentRow(0)
 
@@ -85,7 +85,20 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(widget)
 
     def _switch_tab(self, index: int):
+        widget = self.stack.widget(index)
+        if widget is None:
+            return
         self.stack.setCurrentIndex(index)
+
+        effect = QGraphicsOpacityEffect(widget)
+        widget.setGraphicsEffect(effect)
+        anim = QPropertyAnimation(effect, b"opacity", self)
+        anim.setDuration(180)
+        anim.setStartValue(0.0)
+        anim.setEndValue(1.0)
+        anim.setEasingCurve(QEasingCurve.OutCubic)
+        anim.finished.connect(lambda: widget.setGraphicsEffect(None))
+        anim.start(QPropertyAnimation.DeleteWhenStopped)
 
     def _on_rules_changed(self):
         self.rules_tab.sync_enabled_states()
