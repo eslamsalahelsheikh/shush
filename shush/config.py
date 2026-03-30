@@ -18,7 +18,7 @@ CONFIG_DIR = Path(_XDG_CONFIG) / "shush"
 RULES_FILE = CONFIG_DIR / "rules.json"
 LOG_FILE = CONFIG_DIR / "activity_log.json"
 
-_MAX_PERSISTED_ENTRIES = 500
+_MAX_PERSISTED_ENTRIES = 2000
 
 DEFAULT_RULES: List[dict] = [
     {

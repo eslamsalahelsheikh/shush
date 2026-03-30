@@ -127,8 +127,8 @@ class LogTab(QWidget):
         self._save_timer.start()
 
     def _load_saved_entries(self):
-        for entry in self._entries:
-            self._render_row(entry)
+        for entry in reversed(self._entries[-_MAX_LOG_ROWS:]):
+            self._append_row(entry)
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -177,18 +177,21 @@ class LogTab(QWidget):
         self._dirty = True
         if self._paused:
             return
-        self._render_row(entry)
-        self.table.scrollToBottom()
+        self._write_row(0, entry)
 
-    def _render_row(self, entry: LogEntry):
+    def _append_row(self, entry: LogEntry):
+        """Add a row at the bottom (used for bulk loading)."""
+        self._write_row(self.table.rowCount(), entry)
+
+    def _write_row(self, row: int, entry: LogEntry):
         if self.table.rowCount() >= _MAX_LOG_ROWS:
-            self.table.removeRow(0)
+            self.table.removeRow(self.table.rowCount() - 1)
 
-        row = self.table.rowCount()
         self.table.insertRow(row)
 
+        idx = self._find_entry_index(entry)
         time_item = QTableWidgetItem(entry.timestamp.strftime("%H:%M:%S"))
-        time_item.setData(Qt.UserRole, len(self._entries) - 1 if entry is self._entries[-1] else self._find_entry_index(entry))
+        time_item.setData(Qt.UserRole, idx)
         self.table.setItem(row, 0, time_item)
 
         status_item = QTableWidgetItem(entry.status_text)
@@ -205,7 +208,7 @@ class LogTab(QWidget):
         for i, e in enumerate(self._entries):
             if e is entry:
                 return i
-        return -1
+        return len(self._entries) - 1
 
     def _on_double_click(self, row: int, _col: int):
         item = self.table.item(row, 0)
@@ -231,8 +234,8 @@ class LogTab(QWidget):
 
     def _flush_pending(self):
         self.table.setRowCount(0)
-        for entry in self._entries[-_MAX_LOG_ROWS:]:
-            self._render_row(entry)
+        for entry in reversed(self._entries[-_MAX_LOG_ROWS:]):
+            self._append_row(entry)
 
     def _export(self):
         path, _ = QFileDialog.getSaveFileName(self, "Export Log", "shush_log.csv", "CSV (*.csv)")
