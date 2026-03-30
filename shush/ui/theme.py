@@ -32,7 +32,7 @@ QListWidget#nav {{
 }}
 QListWidget#nav::item {{
     color: {_P.SUBTEXT.name()};
-    padding: 10px 16px;
+    padding: 10px 12px 10px 16px;
     margin: 2px 6px;
     border-radius: 8px;
     border: none;

@@ -79,8 +79,8 @@ class MainWindow(QMainWindow):
 
     def _add_tab(self, name: str, widget: QWidget):
         item = QListWidgetItem(name)
-        item.setSizeHint(item.sizeHint().__class__(150, 40))
-        item.setTextAlignment(Qt.AlignCenter)
+        item.setSizeHint(item.sizeHint().__class__(170, 42))
+        item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.nav.addItem(item)
         self.stack.addWidget(widget)
 
