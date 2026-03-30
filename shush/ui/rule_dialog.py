@@ -71,6 +71,7 @@ class RuleDialog(QDialog):
         kw_layout.setContentsMargins(0, 0, 0, 0)
         self.kw_list = QListWidget()
         self.kw_list.setMaximumHeight(120)
+        self.kw_list.itemDoubleClicked.connect(self._edit_keyword)
         kw_layout.addWidget(self.kw_list)
 
         kw_btn_row = QHBoxLayout()
@@ -222,6 +223,10 @@ class RuleDialog(QDialog):
         if text:
             self.kw_list.addItem(text)
             self.kw_input.clear()
+
+    def _edit_keyword(self, item):
+        item.setFlags(item.flags() | Qt.ItemIsEditable)
+        self.kw_list.editItem(item)
 
     def _remove_keyword(self):
         for item in self.kw_list.selectedItems():
