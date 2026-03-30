@@ -180,6 +180,51 @@ class MainWindow(QMainWindow):
     def add_log_entry(self, entry: LogEntry):
         self.log_tab.add_entry(entry)
 
+    def changeEvent(self, event):
+        if event.type() == event.WindowStateChange and self.isMinimized():
+            from PyQt5.QtCore import QTimer
+            QTimer.singleShot(0, self._minimize_to_tray)
+        super().changeEvent(event)
+
+    def _minimize_to_tray(self):
+        self.setWindowState(Qt.WindowNoState)
+        self.hide()
+        tray = getattr(self, "tray", None)
+        if tray is not None:
+            from PyQt5.QtCore import QTimer
+            QTimer.singleShot(300, self._show_tray_message)
+
+    def _show_tray_message(self):
+        tray = getattr(self, "tray", None)
+        if tray is None:
+            return
+        try:
+            import dbus
+            bus = dbus.SessionBus()
+            proxy = bus.get_object(
+                "org.freedesktop.Notifications",
+                "/org/freedesktop/Notifications",
+            )
+            iface = dbus.Interface(proxy, "org.freedesktop.Notifications")
+            iface.Notify(
+                "Shush",
+                dbus.UInt32(0),
+                "",
+                "Shush",
+                "Minimized to tray. Filtering continues in the background.",
+                dbus.Array([], signature="s"),
+                dbus.Dictionary({}, signature="sv"),
+                dbus.Int32(3000),
+            )
+        except Exception:
+            from PyQt5.QtWidgets import QSystemTrayIcon
+            tray.showMessage(
+                "Shush",
+                "Minimized to tray. Filtering continues in the background.",
+                QSystemTrayIcon.Information,
+                3000,
+            )
+
     def closeEvent(self, event):
         msg = QMessageBox(self)
         msg.setWindowTitle("Close Shush")

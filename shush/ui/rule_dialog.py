@@ -232,8 +232,8 @@ class RuleDialog(QDialog):
         self.accept()
 
     def _add_keyword(self):
-        text = self.kw_input.text().strip()
-        if text:
+        text = self.kw_input.text()
+        if text.strip():
             self.kw_list.addItem(text)
             self.kw_input.clear()
 
@@ -243,7 +243,7 @@ class RuleDialog(QDialog):
             self, "Edit Keyword", "Keyword:", text=item.text(),
         )
         if ok and new_text.strip():
-            item.setText(new_text.strip())
+            item.setText(new_text)
 
     def _remove_keyword(self):
         for item in self.kw_list.selectedItems():

@@ -62,6 +62,7 @@ class RulesTab(QWidget):
         self.rules = rules
         self.cfg = cfg
         self.installed_apps = installed_apps or []
+        self._populating = False
         self._build_ui()
         self._populate()
 
@@ -77,6 +78,7 @@ class RulesTab(QWidget):
         self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
         self.tree.itemDoubleClicked.connect(self._on_edit)
+        self.tree.itemChanged.connect(self._on_item_changed)
         self.tree.reordered.connect(self._on_rows_moved)
 
         header = self.tree.header()
@@ -111,9 +113,16 @@ class RulesTab(QWidget):
         layout.addLayout(toolbar)
 
     def _populate(self):
+        self._populating = True
         self.tree.clear()
         for rule in self.rules:
             self._add_item(rule)
+        self._populating = False
+
+    def _on_item_changed(self, item, column):
+        if self._populating or column != 0:
+            return
+        self.rules_changed.emit()
 
     def _add_item(self, rule: Rule) -> QTreeWidgetItem:
         item = QTreeWidgetItem()

@@ -180,11 +180,13 @@ class LogTab(QWidget):
         self.table.customContextMenuRequested.connect(self._context_menu)
 
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        header.setStretchLastSection(False)
         header.setSectionResizeMode(3, QHeaderView.Stretch)
-        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        self.table.setColumnWidth(0, 70)
+        self.table.setColumnWidth(1, 90)
+        self.table.setColumnWidth(2, 120)
+        self.table.setColumnWidth(4, 110)
         layout.addWidget(self.table)
 
         toolbar = QHBoxLayout()

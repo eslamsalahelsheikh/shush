@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 class TrayIcon(QSystemTrayIcon):
     toggle_window = pyqtSignal()
+    show_window = pyqtSignal()
     show_log = pyqtSignal()
     toggle_pause = pyqtSignal(bool)
     quit_app = pyqtSignal()
@@ -29,8 +30,8 @@ class TrayIcon(QSystemTrayIcon):
 
         menu = QMenu()
 
-        self._show_action = QAction("Show / Hide", menu)
-        self._show_action.triggered.connect(self.toggle_window.emit)
+        self._show_action = QAction("Show Shush", menu)
+        self._show_action.triggered.connect(self.show_window.emit)
         menu.addAction(self._show_action)
 
         self._log_action = QAction("Activity Log", menu)

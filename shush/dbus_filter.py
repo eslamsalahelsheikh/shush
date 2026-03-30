@@ -102,6 +102,9 @@ class DBusFilter:
         summary = str(args[3])
         body = str(args[4])
 
+        if app_name in ("Shush", "shush"):
+            return
+
         if app_name:
             for cb in self._on_new_app_callbacks:
                 try:

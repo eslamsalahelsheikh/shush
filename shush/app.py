@@ -141,6 +141,7 @@ def run(argv=None) -> int:
     dbus_filter.connect_new_app(on_new_app)
 
     tray = TrayIcon()
+    window.tray = tray
 
     def on_schedule_state_changed(active: bool):
         if active:
@@ -165,7 +166,13 @@ def run(argv=None) -> int:
         window.raise_()
         window.activateWindow()
 
+    def on_tray_show():
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
     tray.toggle_window.connect(on_tray_click)
+    tray.show_window.connect(on_tray_show)
     tray.show_log.connect(on_tray_show_log)
     tray.toggle_pause.connect(_make_pause_handler(dbus_filter))
     tray.quit_app.connect(qt_app.quit)
