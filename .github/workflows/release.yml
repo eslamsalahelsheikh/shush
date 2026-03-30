@@ -94,13 +94,15 @@ jobs:
         id: changelog
         run: |
           TAG="${GITHUB_REF#refs/tags/v}"
-          SECTION=$(python3 -c "
+          SECTION=$(python3 - "$TAG" <<'PYEOF'
           import re, sys
+          tag = sys.argv[1]
           text = open('CHANGELOG.md').read()
-          pattern = rf'## {re.escape(TAG)} —.*?\n(.*?)(?=\n## |\Z)'
+          pattern = rf'## {re.escape(tag)} —.*?\n(.*?)(?=\n## |\Z)'
           m = re.search(pattern, text, re.DOTALL)
-          print(m.group(1).strip() if m else 'Release v$TAG')
-          ")
+          print(m.group(1).strip() if m else f'Release v{tag}')
+          PYEOF
+          )
           echo "body<<DELIM" >> "$GITHUB_OUTPUT"
           echo "$SECTION" >> "$GITHUB_OUTPUT"
           echo "DELIM" >> "$GITHUB_OUTPUT"
