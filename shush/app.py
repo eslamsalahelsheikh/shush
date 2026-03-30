@@ -6,6 +6,7 @@ import argparse
 import logging
 import os
 import signal
+import socket
 import sys
 
 from gi.repository import GLib
@@ -53,8 +54,31 @@ def _daemonize() -> None:
     os.close(devnull)
 
 
+_lock_socket: socket.socket | None = None
+
+
+def _acquire_instance_lock() -> bool:
+    """Try to grab a single-instance lock via an abstract Unix socket.
+
+    Returns True if we are the first instance, False if another is running.
+    The socket is kept open for the lifetime of the process; the OS
+    automatically releases it when the process exits.
+    """
+    global _lock_socket
+    _lock_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    try:
+        _lock_socket.bind("\0shush.instance.lock")
+        return True
+    except OSError:
+        return False
+
+
 def run(argv=None) -> int:
     args = parse_args(argv)
+
+    if not _acquire_instance_lock():
+        print("Shush is already running.", file=sys.stderr)
+        return 1
 
     if not args.no_fork and not args.verbose and not args.dry_run:
         _daemonize()
