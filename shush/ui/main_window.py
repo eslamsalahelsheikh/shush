@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
         self._add_tab("\u2699\ufe0f  Settings", self.settings_tab)
 
         self.about_tab = AboutTab()
-        self._add_tab("\u2139\ufe0f  About", self.about_tab)
+        self._add_tab("\U0001f4ac  About", self.about_tab)
 
         self.nav.setCurrentRow(0)
 

@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.8"
 authors = [
-    {name = "Eslam Salah"},
+    {name = "Eslam Elshiekh"},
 ]
 keywords = ["notifications", "dbus", "linux", "filter", "gui", "desktop", "focus"]
 classifiers = [

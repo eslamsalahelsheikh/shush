@@ -81,7 +81,7 @@ class AboutTab(QWidget):
         layout.addSpacing(20)
 
         credits_label = QLabel(
-            f'Made by <span style="color: {Palette.MAUVE.name()};">Eslam Salah</span>'
+            f'Made by <span style="color: {Palette.MAUVE.name()};">Eslam Elshiekh</span>'
         )
         credits_label.setAlignment(Qt.AlignCenter)
         credits_label.setStyleSheet(
