@@ -68,6 +68,7 @@ class MainWindow(QMainWindow):
         self._add_tab("\u2261  Rules", self.rules_tab)
 
         self.log_tab = LogTab()
+        self.log_tab.rule_requested.connect(self._on_rule_from_log)
         self._add_tab("\u25ce  Activity Log", self.log_tab)
 
         self.schedule_tab = ScheduleTab(self.cfg)
@@ -115,6 +116,13 @@ class MainWindow(QMainWindow):
         anim.setEasingCurve(QEasingCurve.OutCubic)
         anim.finished.connect(lambda: widget.setGraphicsEffect(None))
         anim.start(QPropertyAnimation.DeleteWhenStopped)
+
+    def _on_rule_from_log(self, rule):
+        """Add a pre-filled rule from the Activity Log and switch to the Rules tab."""
+        self.rules.append(rule)
+        self.rules_tab._populate()
+        self.rules_tab.rules_changed.emit()
+        self.nav.setCurrentRow(0)
 
     def _on_rules_changed(self):
         self.rules_tab.sync_enabled_states()

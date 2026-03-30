@@ -8,10 +8,11 @@ import logging
 from typing import List
 
 import dbus
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QAbstractItemView,
+    QAction,
     QComboBox,
     QDialog,
     QFileDialog,
@@ -20,6 +21,7 @@ from PyQt5.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QMenu,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -29,7 +31,7 @@ from PyQt5.QtWidgets import (
 )
 
 from .. import config
-from ..models import LogEntry
+from ..models import Action, LogEntry, MatchField, Rule
 from .resources import Palette, status_dot
 
 _MAX_LOG_ROWS = 2000
@@ -115,6 +117,8 @@ class _NotificationDetailDialog(QDialog):
 
 
 class LogTab(QWidget):
+    rule_requested = pyqtSignal(object)  # emits a pre-filled Rule
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._entries: List[LogEntry] = config.load_log()
@@ -166,6 +170,8 @@ class LogTab(QWidget):
         self.table.setAlternatingRowColors(True)
         self.table.verticalHeader().setVisible(False)
         self.table.cellDoubleClicked.connect(self._on_double_click)
+        self.table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self._context_menu)
 
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
@@ -265,14 +271,46 @@ class LogTab(QWidget):
         self.search_edit.setFocus()
         self.search_edit.selectAll()
 
-    def _on_double_click(self, row: int, _col: int):
+    def _entry_for_row(self, row: int) -> LogEntry | None:
         item = self.table.item(row, 0)
         if item is None:
-            return
+            return None
         idx = item.data(Qt.UserRole)
         if idx is None or idx < 0 or idx >= len(self._entries):
+            return None
+        return self._entries[idx]
+
+    def _context_menu(self, pos):
+        row = self.table.rowAt(pos.y())
+        entry = self._entry_for_row(row) if row >= 0 else None
+        if entry is None:
             return
-        entry = self._entries[idx]
+        menu = QMenu(self)
+        detail_action = menu.addAction("View Details\u2026")
+        rule_action = menu.addAction("Create Rule from This\u2026")
+        chosen = menu.exec_(self.table.viewport().mapToGlobal(pos))
+        if chosen == detail_action:
+            dlg = _NotificationDetailDialog(entry, self)
+            dlg.exec_()
+        elif chosen == rule_action:
+            self._request_rule(entry)
+
+    def _request_rule(self, entry: LogEntry):
+        import uuid
+        rule = Rule(
+            id=uuid.uuid4().hex[:12],
+            name=entry.app_name or "New Rule",
+            action=Action.ALLOW,
+            keywords=[entry.summary] if entry.summary else [],
+            match_fields=[MatchField.SUMMARY, MatchField.BODY],
+            app_filter=entry.app_name or "",
+        )
+        self.rule_requested.emit(rule)
+
+    def _on_double_click(self, row: int, _col: int):
+        entry = self._entry_for_row(row)
+        if entry is None:
+            return
         dlg = _NotificationDetailDialog(entry, self)
         dlg.exec_()
 
