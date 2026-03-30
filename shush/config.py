@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import uuid
 from pathlib import Path
 from typing import List, Tuple
 
@@ -76,6 +77,18 @@ def load() -> Tuple[GlobalConfig, List[Rule]]:
 
     cfg = GlobalConfig.from_dict(data.get("global", {}))
     rules = [Rule.from_dict(r) for r in data.get("rules", [])]
+
+    repaired = False
+    seen_ids: set[str] = set()
+    for rule in rules:
+        if not rule.id or rule.id in seen_ids:
+            rule.id = uuid.uuid4().hex[:12]
+            repaired = True
+        seen_ids.add(rule.id)
+    if repaired:
+        log.info("Assigned unique IDs to rules with missing/duplicate IDs")
+        save(cfg, rules)
+
     return cfg, rules
 
 

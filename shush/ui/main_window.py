@@ -128,9 +128,9 @@ class MainWindow(QMainWindow):
         msg.setWindowTitle("Close Shush")
         msg.setText("Shush is still filtering in the background.")
         msg.setInformativeText("Keep running or stop completely?")
-        minimize_btn = msg.addButton("Minimize to Tray", QMessageBox.AcceptRole)
-        quit_btn = msg.addButton("Quit Shush", QMessageBox.DestructiveRole)
-        cancel_btn = msg.addButton(QMessageBox.Cancel)
+        minimize_btn = msg.addButton("  Hide to Tray  ", QMessageBox.AcceptRole)
+        quit_btn = msg.addButton("  Quit  ", QMessageBox.DestructiveRole)
+        cancel_btn = msg.addButton("  Cancel  ", QMessageBox.RejectRole)
         msg.setDefaultButton(minimize_btn)
 
         msg.exec_()
