@@ -26,6 +26,13 @@ calls, urgent alerts — everything else is silenced.
 Works on **any Linux desktop environment** (GNOME, KDE, XFCE, Sway, i3, …)
 without replacing your notification daemon.
 
+## Demo
+
+<p align="center">
+  <img src="docs/screenshots/demo.gif" alt="Shush Demo" width="700"><br>
+  <em>Quick tour — rules, activity log, schedules, rule editor, settings, and about</em>
+</p>
+
 ## Screenshots
 
 <p align="center">
@@ -55,7 +62,7 @@ without replacing your notification daemon.
 
 <p align="center">
   <img src="docs/screenshots/system-tray.png" alt="System Tray" width="300"><br>
-  <em>System tray — badge shows suppressed count, quick pause/resume</em>
+  <em>System tray — Shush indicator in the GNOME panel</em>
 </p>
 
 ---
@@ -138,7 +145,7 @@ pip install -e .
 ```bash
 sudo apt install python3-pyqt5 python3-dbus python3-gi
 dpkg-buildpackage -us -uc
-sudo dpkg -i ../shush_0.2.0-1_all.deb
+sudo dpkg -i ../shush_0.3.0-1_all.deb
 ```
 
 ### System dependencies
